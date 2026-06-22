@@ -11,7 +11,14 @@ async function request(path, options = {}) {
   const resp = await fetch(`${BASE_URL}${path}`, { ...options, headers });
   if (!resp.ok) {
     const text = await resp.text();
-    throw new Error(`${resp.status}: ${text}`);
+    let message = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (typeof parsed.detail === "string") message = parsed.detail;
+    } catch {
+      // not JSON — fall back to raw text
+    }
+    throw new Error(message || `Request failed (${resp.status})`);
   }
   return resp.json();
 }
