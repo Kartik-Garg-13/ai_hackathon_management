@@ -85,11 +85,13 @@ export const api = {
     formData.append("file", file);
     return request(hackathonPath("/registrations/upload"), { method: "POST", body: formData });
   },
-  listRegistrations: (riskLevel, approvalStatus, name) => {
+  listRegistrations: (riskLevel, approvalStatus, name, limit, offset) => {
     const params = new URLSearchParams();
     if (riskLevel) params.set("risk_level", riskLevel);
     if (approvalStatus) params.set("approval_status", approvalStatus);
     if (name) params.set("name", name);
+    if (limit) params.set("limit", limit);
+    if (offset) params.set("offset", offset);
     const query = params.toString();
     return request(`${hackathonPath("/registrations")}${query ? `?${query}` : ""}`);
   },

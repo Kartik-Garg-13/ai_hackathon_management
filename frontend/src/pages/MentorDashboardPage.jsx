@@ -23,6 +23,8 @@ export default function MentorDashboardPage() {
 
   const [leaderboard, setLeaderboard] = useState([]);
   const [wellbeing, setWellbeing] = useState([]);
+  const [showAllTeams, setShowAllTeams] = useState(false);
+  const [allTeamsWellbeing, setAllTeamsWellbeing] = useState([]);
   const [error, setError] = useState(null);
 
   function statusOf(q) {
@@ -42,6 +44,7 @@ export default function MentorDashboardPage() {
     refresh();
     api.mentorLeaderboard().then(setLeaderboard).catch(() => {});
     api.flaggedTeams().then(setWellbeing).catch(() => {});
+    api.burnoutReport().then(setAllTeamsWellbeing).catch(() => {});
   }, []);
 
   function handleLogout() {
@@ -164,9 +167,27 @@ export default function MentorDashboardPage() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }} style={{ marginTop: 32 }}>
-          <h2 className="mentor-dash__title" style={{ fontSize: 20 }}>Teams that may need a check-in</h2>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <h2 className="mentor-dash__title" style={{ fontSize: 20 }}>
+              {showAllTeams ? "All teams' wellbeing" : "Teams that may need a check-in"}
+            </h2>
+            <div className="mentor-dash__filter-pill">
+              <button
+                className={`mentor-dash__filter-btn ${!showAllTeams ? "mentor-dash__filter-btn--active" : ""}`}
+                onClick={() => setShowAllTeams(false)}
+              >
+                Flagged only
+              </button>
+              <button
+                className={`mentor-dash__filter-btn ${showAllTeams ? "mentor-dash__filter-btn--active" : ""}`}
+                onClick={() => setShowAllTeams(true)}
+              >
+                All teams
+              </button>
+            </div>
+          </div>
           <GlassCard tone="light" className="mentor-dash__inbox">
-            {wellbeing.map((t) => (
+            {(showAllTeams ? allTeamsWellbeing : wellbeing).map((t) => (
               <div key={t.team_id} className="mentor-dash__doubt-item" style={{ cursor: "default" }}>
                 <div className="mentor-dash__doubt-item-top">
                   <span className="mentor-dash__doubt-subject">{t.team_name}</span>
@@ -175,7 +196,9 @@ export default function MentorDashboardPage() {
                 <span className="mentor-dash__doubt-preview">{t.summary}</span>
               </div>
             ))}
-            {wellbeing.length === 0 && <div className="mentor-dash__empty">No teams flagged right now.</div>}
+            {(showAllTeams ? allTeamsWellbeing : wellbeing).length === 0 && (
+              <div className="mentor-dash__empty">{showAllTeams ? "No teams found." : "No teams flagged right now."}</div>
+            )}
           </GlassCard>
         </motion.div>
       </main>

@@ -54,6 +54,11 @@ export default function DashboardPage() {
     refreshQueries();
   }, []);
 
+  useEffect(() => {
+    if (!me?.team_id) return;
+    api.getPitchReview(me.team_id).then(setPitchResult).catch(() => {});
+  }, [me?.team_id]);
+
   async function refreshQueries() {
     try {
       setMyQueries(await api.listQueries());

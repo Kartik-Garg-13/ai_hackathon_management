@@ -19,6 +19,12 @@ export default function AdminInsightsPage() {
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState(null);
 
+  const [compareTeamA, setCompareTeamA] = useState("");
+  const [compareTeamB, setCompareTeamB] = useState("");
+  const [compareResult, setCompareResult] = useState(null);
+  const [comparing, setComparing] = useState(false);
+  const [compareError, setCompareError] = useState(null);
+
   useEffect(() => {
     api.listTeams().then(setTeams).catch(() => {});
     api.similarityReport().then(setSimilarity).catch((e) => setSimilarityError(e.message)).finally(() => setSimilarityLoading(false));
@@ -37,6 +43,19 @@ export default function AdminInsightsPage() {
       setScanError(e.message);
     } finally {
       setScanning(false);
+    }
+  }
+
+  async function runCompare() {
+    setComparing(true);
+    setCompareError(null);
+    setCompareResult(null);
+    try {
+      setCompareResult(await api.comparePlagiarism(Number(compareTeamA), Number(compareTeamB)));
+    } catch (e) {
+      setCompareError(e.message);
+    } finally {
+      setComparing(false);
     }
   }
 
@@ -111,6 +130,51 @@ export default function AdminInsightsPage() {
                   <span className="admin-insights-page__pair-score">{Math.round(r.overall_similarity * 100)}% similar &middot; {r.risk_level} risk</span>
                 </div>
               ))}
+            </div>
+          )}
+        </motion.section>
+
+        <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
+          <h2 className="admin-insights-page__section-title">Compare two specific teams</h2>
+          <p className="admin-insights-page__hint">
+            Pick any two teams with a repo link to run a one-off plagiarism comparison, instead of waiting for the bulk scan.
+          </p>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <select className="admin-insights-page__filter" value={compareTeamA} onChange={(e) => setCompareTeamA(e.target.value)}>
+              <option value="">Team A…</option>
+              {teamsWithRepo.map((t) => <option key={t.id} value={t.id}>{t.team_name}</option>)}
+            </select>
+            <span className="admin-insights-page__pair-vs">vs</span>
+            <select className="admin-insights-page__filter" value={compareTeamB} onChange={(e) => setCompareTeamB(e.target.value)}>
+              <option value="">Team B…</option>
+              {teamsWithRepo.map((t) => <option key={t.id} value={t.id}>{t.team_name}</option>)}
+            </select>
+            <Button
+              variant="primary"
+              size="md"
+              loading={comparing}
+              onClick={runCompare}
+              disabled={!compareTeamA || !compareTeamB || compareTeamA === compareTeamB}
+            >
+              {comparing ? "Comparing…" : "Compare"}
+            </Button>
+          </div>
+          {compareError && <div className="admin-insights-page__error" role="alert" style={{ marginTop: 10 }}>{compareError}</div>}
+          {compareResult && (
+            <div className="admin-insights-page__pair-list" style={{ marginTop: 10 }}>
+              <div className={`admin-insights-page__pair-row admin-insights-page__pair-row--${compareResult.risk_level}`}>
+                <span className="admin-insights-page__pair-teams">
+                  {teamName(compareResult.team_a_id)} <span className="admin-insights-page__pair-vs">vs</span> {teamName(compareResult.team_b_id)}
+                </span>
+                <span className="admin-insights-page__pair-score">
+                  {Math.round(compareResult.overall_similarity * 100)}% similar &middot; {compareResult.risk_level} risk
+                </span>
+              </div>
+              {compareResult.notes.length > 0 && (
+                <ul style={{ marginTop: 6 }}>
+                  {compareResult.notes.map((n, i) => <li key={i}>{n}</li>)}
+                </ul>
+              )}
             </div>
           )}
         </motion.section>

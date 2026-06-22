@@ -26,7 +26,14 @@ export default function AdminDashboardPage() {
   const [links, setLinks] = useState({});
 
   useEffect(() => {
-    api.listMyHackathons().then(setHackathons).catch((e) => setError(e.message));
+    api.listMyHackathons().then(async (data) => {
+      setHackathons(data);
+      const entries = await Promise.all(
+        data.map((h) => api.listInviteLinks(h.id).then((l) => [h.id, l]).catch(() => [h.id, null]))
+      );
+      const existing = Object.fromEntries(entries.filter(([, l]) => l && l.length > 0));
+      setLinks((prev) => ({ ...existing, ...prev }));
+    }).catch((e) => setError(e.message));
   }, []);
 
   useEffect(() => {

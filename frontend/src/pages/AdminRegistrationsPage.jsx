@@ -12,6 +12,7 @@ import "./AdminRegistrationsPage.css";
 const REQUIRED_COLUMNS = ["id", "name", "email", "college", "skills", "project_idea", "team_name", "phone_number"];
 const RISK_OPTIONS = ["", "High Risk", "Medium Risk", "Low Risk"];
 const APPROVAL_OPTIONS = ["", "pending", "approved", "rejected"];
+const PAGE_SIZE = 50;
 
 export default function AdminRegistrationsPage() {
   const navigate = useNavigate();
@@ -21,6 +22,8 @@ export default function AdminRegistrationsPage() {
   const [approvalFilter, setApprovalFilter] = useState("");
   const [nameSearch, setNameSearch] = useState("");
   const [nameSearchInput, setNameSearchInput] = useState("");
+  const [page, setPage] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [rows, setRows] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [listLoading, setListLoading] = useState(true);
@@ -52,10 +55,11 @@ export default function AdminRegistrationsPage() {
         return;
       }
       const [r, a] = await Promise.all([
-        api.listRegistrations(riskFilter || undefined, approvalFilter || undefined, nameSearch || undefined),
+        api.listRegistrations(riskFilter || undefined, approvalFilter || undefined, nameSearch || undefined, PAGE_SIZE + 1, page * PAGE_SIZE),
         api.registrationAnalytics(),
       ]);
-      setRows(r);
+      setHasNextPage(r.length > PAGE_SIZE);
+      setRows(r.slice(0, PAGE_SIZE));
       setAnalytics(a);
     } catch (err) {
       setListError(err.message || "Could not load registrations.");
@@ -65,9 +69,14 @@ export default function AdminRegistrationsPage() {
   }
 
   useEffect(() => {
-    refresh();
+    setPage(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [riskFilter, approvalFilter, nameSearch]);
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [riskFilter, approvalFilter, nameSearch, page]);
 
   useEffect(() => {
     const timer = setTimeout(() => setNameSearch(nameSearchInput.trim()), 300);
@@ -176,6 +185,20 @@ export default function AdminRegistrationsPage() {
               <ResultStat label="Medium risk" value={analytics.medium_risk_count} />
               <ResultStat label="Low risk" value={analytics.low_risk_count} />
               <ResultStat label="Fraud rings" value={analytics.fraud_rings_detected} />
+              <ResultStat label="Avg trust score" value={analytics.average_trust_score} />
+              <ResultStat label="Statistical anomalies" value={analytics.statistical_anomalies} />
+
+              {analytics.ground_truth_metrics && (
+                <div className="admin-reg-page__metrics-card">
+                  <span className="admin-reg-page__metrics-title">Model accuracy (vs. ground truth)</span>
+                  <div className="admin-reg-page__metrics-list">
+                    <div className="admin-reg-page__metrics-row"><span>Accuracy</span><strong>{analytics.ground_truth_metrics.accuracy}</strong></div>
+                    <div className="admin-reg-page__metrics-row"><span>Macro precision</span><strong>{analytics.ground_truth_metrics.macro_precision}</strong></div>
+                    <div className="admin-reg-page__metrics-row"><span>Macro recall</span><strong>{analytics.ground_truth_metrics.macro_recall}</strong></div>
+                    <div className="admin-reg-page__metrics-row"><span>Macro F1</span><strong>{analytics.ground_truth_metrics.macro_f1}</strong></div>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.section>
         )}
@@ -216,10 +239,25 @@ export default function AdminRegistrationsPage() {
                       {row.name}
                       {row.team_name && <span className="admin-reg-page__row-team"> · {row.team_name}</span>}
                     </span>
+                    <span className="admin-reg-page__row-explanation">
+                      {row.final_trust_score != null ? `Trust ${row.final_trust_score}` : ""}
+                    </span>
                     {row.final_risk_level ? <RiskBadge level={row.final_risk_level} kind="registration" /> : <span className="admin-reg-page__row-explanation">Not yet analyzed</span>}
                     <span className="admin-reg-page__row-explanation">{row.approval_status}</span>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {!listLoading && !listError && (page > 0 || hasNextPage) && (
+              <div className="admin-reg-page__pagination">
+                <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+                  Previous
+                </Button>
+                <span className="admin-reg-page__page-info">Page {page + 1}</span>
+                <Button variant="outline" size="sm" disabled={!hasNextPage} onClick={() => setPage((p) => p + 1)}>
+                  Next
+                </Button>
               </div>
             )}
           </GlassCard>
@@ -237,6 +275,17 @@ export default function AdminRegistrationsPage() {
               <ul className="admin-reg-page__modal-reasons">
                 {selected.reasons.map((r, i) => <li key={i}>{r}</li>)}
               </ul>
+            )}
+            {selected.final_trust_score != null && (
+              <div className="admin-reg-page__trust-score">
+                <div><strong>Trust score:</strong> {selected.final_trust_score}</div>
+                {selected.confidence_score != null && <div><strong>Confidence:</strong> {selected.confidence_score}</div>}
+                {selected.anomaly_score != null && <div><strong>Anomaly score:</strong> {selected.anomaly_score}</div>}
+                {selected.fraud_ring_id != null && selected.fraud_ring_id !== -1 && <div><strong>Fraud ring:</strong> #{selected.fraud_ring_id}</div>}
+                {selected.github_username && <div><strong>GitHub:</strong> {selected.github_username}</div>}
+                {selected.ip_address && <div><strong>IP address:</strong> {selected.ip_address}</div>}
+                {selected.academic_year && <div><strong>Academic year:</strong> {selected.academic_year}</div>}
+              </div>
             )}
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               <Button variant="primary" size="sm" onClick={() => handleApprove(selected.id)}>Approve</Button>

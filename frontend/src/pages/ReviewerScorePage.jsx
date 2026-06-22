@@ -13,6 +13,7 @@ export default function ReviewerScorePage() {
   const { teamId } = useParams();
   const [me, setMe] = useState(null);
   const [assignment, setAssignment] = useState(null);
+  const [teamName, setTeamName] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -32,8 +33,10 @@ export default function ReviewerScorePage() {
       try {
         const myProfile = await api.getMe();
         setMe(myProfile);
-        const list = await api.listAssignments();
+        const [list, teams] = await Promise.all([api.listAssignments(), api.listTeams().catch(() => [])]);
         setAssignment(list.find((a) => String(a.team_id) === String(teamId)) || null);
+        const team = teams.find((t) => String(t.id) === String(teamId));
+        setTeamName(team?.team_name || null);
       } catch (err) {
         setError(err.message || "Could not load team details.");
       } finally {
@@ -77,7 +80,7 @@ export default function ReviewerScorePage() {
             </svg>
           </div>
           <h2>Score submitted</h2>
-          <p>Your evaluation for Team {teamId} has been recorded.</p>
+          <p>Your evaluation for {teamName || `Team ${teamId}`} has been recorded.</p>
           <Button variant="primary" onClick={() => navigate("/reviewer/dashboard")}>Back to dashboard</Button>
         </motion.div>
       </div>
@@ -102,7 +105,7 @@ export default function ReviewerScorePage() {
             <GlassCard tone="light" className="reviewer-score-page__card">
               <div className="reviewer-score-page__head">
                 <span className="reviewer-score-page__eyebrow">Score this team</span>
-                <h1>Team {teamId}</h1>
+                <h1>{teamName || `Team ${teamId}`}</h1>
                 {assignment?.explanation && <p className="reviewer-score-page__explanation">{assignment.explanation}</p>}
               </div>
 

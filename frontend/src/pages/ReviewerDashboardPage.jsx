@@ -17,6 +17,7 @@ export default function ReviewerDashboardPage() {
   const [me, setMe] = useState(null);
   const [assignments, setAssignments] = useState([]);
   const [biasEntry, setBiasEntry] = useState(null);
+  const [teamNameById, setTeamNameById] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -28,12 +29,14 @@ export default function ReviewerDashboardPage() {
         const myProfile = await api.getMe();
         setMe(myProfile);
 
-        const [assignmentData, biasData] = await Promise.all([
+        const [assignmentData, biasData, teams] = await Promise.all([
           api.listAssignments(),
           api.biasReport().catch(() => []),
+          api.listTeams().catch(() => []),
         ]);
         setAssignments(assignmentData.filter((a) => String(a.reviewer_id) === String(myProfile.id)));
         setBiasEntry(biasData.find((b) => String(b.reviewer_id) === String(myProfile.id)) || null);
+        setTeamNameById(Object.fromEntries(teams.map((t) => [t.id, t.team_name])));
       } catch (err) {
         setError(err.message || "Could not load your assignments.");
       } finally {
@@ -90,7 +93,7 @@ export default function ReviewerDashboardPage() {
           <div className="reviewer-dash__grid">
             {assignments.map((a) => (
               <GlassCard key={a.id} tone="light" hoverLift className="reviewer-dash__card">
-                <h3 className="reviewer-dash__card-title">Team {a.team_id}</h3>
+                <h3 className="reviewer-dash__card-title">{teamNameById[a.team_id] || `Team ${a.team_id}`}</h3>
                 {a.explanation && <p className="reviewer-dash__card-explanation">{a.explanation}</p>}
                 <Button variant="primary" size="sm" onClick={() => navigate(`/reviewer/score/${a.team_id}`)}>
                   Score this team
