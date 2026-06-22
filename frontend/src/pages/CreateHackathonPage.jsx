@@ -72,9 +72,15 @@ export default function CreateHackathonPage() {
         allow_judges: form.needsJudges,
         allow_mentors: form.needsMentors,
       });
-      const generatedLinks = await api.generateInviteLinks(hackathon.id);
+      // Hackathon now exists server-side — mark created immediately so a
+      // failure below can't cause the user to resubmit and create a duplicate.
       setCreated(hackathon);
-      setLinks(generatedLinks);
+      try {
+        setLinks(await api.generateInviteLinks(hackathon.id));
+      } catch (linkErr) {
+        setLinks([]);
+        setSubmitError("Hackathon created, but invite links couldn't be generated automatically — you can generate them from the dashboard.");
+      }
     } catch (err) {
       setSubmitError(err.message || "Could not create the hackathon. Please try again.");
     } finally {
@@ -106,6 +112,9 @@ export default function CreateHackathonPage() {
           <p className="create-hack__success-desc">
             Share these invite links with judges, mentors, and participants.
           </p>
+          {submitError && (
+            <p className="create-hack__success-desc" style={{ color: "#b91c1c" }}>{submitError}</p>
+          )}
           <div style={{ textAlign: "left", margin: "16px 0", fontSize: 13 }}>
             {links?.map((link) => (
               <div key={link.id} style={{ marginBottom: 6 }}>

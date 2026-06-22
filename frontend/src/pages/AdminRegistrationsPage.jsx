@@ -116,15 +116,23 @@ export default function AdminRegistrationsPage() {
   }
 
   async function handleApprove(id) {
-    await api.approveRegistration(id);
-    setSelected(null);
-    await refresh();
+    try {
+      await api.approveRegistration(id);
+      setSelected(null);
+      await refresh();
+    } catch (err) {
+      setListError(err.message || "Could not approve this registration.");
+    }
   }
 
   async function handleReject(id) {
-    await api.rejectRegistration(id);
-    setSelected(null);
-    await refresh();
+    try {
+      await api.rejectRegistration(id);
+      setSelected(null);
+      await refresh();
+    } catch (err) {
+      setListError(err.message || "Could not reject this registration.");
+    }
   }
 
   return (

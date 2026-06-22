@@ -16,9 +16,13 @@ export default function AdminBiasPage() {
 
   const [flagged, setFlagged] = useState([]);
   const [flaggedLoading, setFlaggedLoading] = useState(true);
+  const [flaggedError, setFlaggedError] = useState(null);
 
   const [audit, setAudit] = useState([]);
   const [auditLoading, setAuditLoading] = useState(true);
+  const [auditError, setAuditError] = useState(null);
+
+  const [teamsError, setTeamsError] = useState(null);
 
   const [teams, setTeams] = useState([]);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
@@ -32,14 +36,15 @@ export default function AdminBiasPage() {
 
   useEffect(() => {
     api.biasReport().then(setBias).catch((e) => setBiasError(e.message)).finally(() => setBiasLoading(false));
-    api.flaggedReviewers().then(setFlagged).finally(() => setFlaggedLoading(false));
+    api.flaggedReviewers().then(setFlagged).catch((e) => setFlaggedError(e.message)).finally(() => setFlaggedLoading(false));
     api.auditLog()
       .then((data) => setAudit([...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))))
+      .catch((e) => setAuditError(e.message))
       .finally(() => setAuditLoading(false));
     api.listTeams().then((data) => {
       setTeams(data);
       if (data.length > 0) setSelectedTeamId(data[0].id);
-    });
+    }).catch((e) => setTeamsError(e.message));
   }, []);
 
   useEffect(() => {
@@ -79,8 +84,9 @@ export default function AdminBiasPage() {
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
           <h2 className="admin-bias-page__section-title">Flagged reviewers</h2>
           {flaggedLoading && <div className="admin-bias-page__status">Loading flagged reviewers…</div>}
-          {!flaggedLoading && flagged.length === 0 && <div className="admin-bias-page__status">No reviewers currently flagged. Good news.</div>}
-          {!flaggedLoading && flagged.length > 0 && <BiasCardGrid items={flagged} openDetails={openDetails} toggleDetails={toggleDetails} prefix="flagged" />}
+          {flaggedError && <div className="admin-bias-page__error" role="alert">{flaggedError}</div>}
+          {!flaggedLoading && !flaggedError && flagged.length === 0 && <div className="admin-bias-page__status">No reviewers currently flagged. Good news.</div>}
+          {!flaggedLoading && !flaggedError && flagged.length > 0 && <BiasCardGrid items={flagged} openDetails={openDetails} toggleDetails={toggleDetails} prefix="flagged" />}
         </motion.section>
 
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
@@ -97,6 +103,7 @@ export default function AdminBiasPage() {
               <option key={t.id} value={t.id}>{t.team_name}</option>
             ))}
           </select>
+          {teamsError && <div className="admin-bias-page__error" role="alert">{teamsError}</div>}
 
           {normalizedLoading && <div className="admin-bias-page__status">Loading scores…</div>}
           {normalizedError && <div className="admin-bias-page__error" role="alert">{normalizedError}</div>}
@@ -126,8 +133,9 @@ export default function AdminBiasPage() {
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
           <h2 className="admin-bias-page__section-title">Audit log</h2>
           {auditLoading && <div className="admin-bias-page__status">Loading audit log…</div>}
-          {!auditLoading && audit.length === 0 && <div className="admin-bias-page__status">No audit entries yet.</div>}
-          {!auditLoading && audit.length > 0 && (
+          {auditError && <div className="admin-bias-page__error" role="alert">{auditError}</div>}
+          {!auditLoading && !auditError && audit.length === 0 && <div className="admin-bias-page__status">No audit entries yet.</div>}
+          {!auditLoading && !auditError && audit.length > 0 && (
             <div className="admin-bias-page__audit-list">
               {audit.slice(0, 50).map((entry) => (
                 <div key={entry.id} className="admin-bias-page__audit-row">

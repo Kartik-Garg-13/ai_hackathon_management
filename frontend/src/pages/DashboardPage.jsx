@@ -146,7 +146,22 @@ export default function DashboardPage() {
     }
   }
 
-  if (!me) return null;
+  if (!me) {
+    return (
+      <div className="dashboard-page__status" style={{ padding: "3rem", textAlign: "center" }}>
+        {error ? (
+          <>
+            <p>{error}</p>
+            <button onClick={handleLogout} style={{ marginTop: 12, textDecoration: "underline", background: "none", border: "none", cursor: "pointer" }}>
+              Log in again
+            </button>
+          </>
+        ) : (
+          "Loading your dashboard…"
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="dashboard-page">
