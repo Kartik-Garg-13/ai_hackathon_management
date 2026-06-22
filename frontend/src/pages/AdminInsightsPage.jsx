@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import GlassCard from "../components/GlassCard.jsx";
 import Button from "../components/Button.jsx";
+import TeamSearchSelect from "../components/TeamSearchSelect.jsx";
 import { api, ensureHackathonSelected } from "../api.js";
 import "./AdminInsightsPage.css";
 
@@ -144,18 +145,13 @@ export default function AdminInsightsPage() {
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
           <h2 className="admin-insights-page__section-title">Compare two specific teams</h2>
           <p className="admin-insights-page__hint">
-            Pick any two teams with a repo link to run a one-off plagiarism comparison, instead of waiting for the bulk scan.
+            Search for any two teams to run a one-off plagiarism comparison, instead of waiting for the
+            bulk scan. Both teams need a GitHub repo link set on their project before the comparison can run.
           </p>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-            <select className="admin-insights-page__filter" value={compareTeamA} onChange={(e) => setCompareTeamA(e.target.value)}>
-              <option value="">Team A…</option>
-              {teamsWithRepo.map((t) => <option key={t.id} value={t.id}>{t.team_name}</option>)}
-            </select>
+            <TeamSearchSelect teams={teams} value={compareTeamA} onChange={setCompareTeamA} placeholder="Search for Team A…" />
             <span className="admin-insights-page__pair-vs">vs</span>
-            <select className="admin-insights-page__filter" value={compareTeamB} onChange={(e) => setCompareTeamB(e.target.value)}>
-              <option value="">Team B…</option>
-              {teamsWithRepo.map((t) => <option key={t.id} value={t.id}>{t.team_name}</option>)}
-            </select>
+            <TeamSearchSelect teams={teams} value={compareTeamB} onChange={setCompareTeamB} placeholder="Search for Team B…" />
             <Button
               variant="primary"
               size="md"
