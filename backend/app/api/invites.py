@@ -218,6 +218,8 @@ def login_participant(hackathon_id: int, payload: EmailLogin, db: Session = Depe
     )
     if not participant:
         raise HTTPException(404, "No participant registered with that email for this hackathon")
+    if participant.approval_status == "rejected":
+        raise HTTPException(403, "This registration was rejected by the organizer — contact them for help")
     return AuthSession(auth_token=participant.auth_token, role="participant", name=participant.name, hackathon_id=participant.hackathon_id)
 
 

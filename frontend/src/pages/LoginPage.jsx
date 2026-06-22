@@ -119,7 +119,7 @@ export default function LoginPage() {
             </div>
 
             <p className="login-page__no-hack-notice" style={{ marginBottom: 4 }}>
-              {mode === "login" ? "Already registered? " : "First time here? "}
+              {mode === "login" ? "First time here? " : "Already registered? "}
               <button
                 type="button"
                 style={{ background: "none", border: "none", color: "inherit", textDecoration: "underline", cursor: "pointer", padding: 0 }}
@@ -202,13 +202,12 @@ export default function LoginPage() {
                         <TextField label="Dietary restriction" value={form.dietary_restriction} onChange={(e) => update("dietary_restriction", e.target.value)} />
                         <TextField label="Emergency contact" value={form.emergency_contact} onChange={(e) => update("emergency_contact", e.target.value)} />
                       </div>
-                      <label className="login-page__hack-select-label">
+                      <label className="login-page__checkbox-label">
                         <input
                           type="checkbox"
                           checked={form.consent_accepted}
                           onChange={(e) => update("consent_accepted", e.target.checked)}
                           required
-                          style={{ marginRight: 8 }}
                         />
                         I accept the code of conduct
                       </label>
