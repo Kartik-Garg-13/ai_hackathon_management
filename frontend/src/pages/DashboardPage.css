@@ -311,6 +311,28 @@
   line-height: 1.5;
 }
 
+.dashboard-page__teammates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dashboard-page__teammate-pill {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--c-steel);
+  background: rgba(91, 155, 209, 0.12);
+  border: 1px solid rgba(91, 155, 209, 0.3);
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--r-pill);
+}
+
+.dashboard-page__teammate-time {
+  font-size: 0.72rem;
+  color: var(--c-text-muted-light);
+  white-space: nowrap;
+}
+
 .dashboard-page__doubt-reply {
   display: flex;
   flex-direction: column;

@@ -39,6 +39,9 @@ export default function DashboardPage() {
   const [checkinNote, setCheckinNote] = useState("");
   const [checkinStatus, setCheckinStatus] = useState(null);
 
+  const [teammates, setTeammates] = useState([]);
+  const [teamActivity, setTeamActivity] = useState([]);
+
   const [pitchResult, setPitchResult] = useState(null);
   const [uploading, setUploading] = useState(false);
 
@@ -57,7 +60,22 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!me?.team_id) return;
     api.getPitchReview(me.team_id).then(setPitchResult).catch(() => {});
+    refreshTeam();
   }, [me?.team_id]);
+
+  async function refreshTeam() {
+    if (!me?.team_id) return;
+    try {
+      const [members, activity] = await Promise.all([
+        api.listTeamMembers(me.team_id),
+        api.listTeamActivity(me.team_id),
+      ]);
+      setTeammates(members);
+      setTeamActivity(activity);
+    } catch {
+      // team box is supplementary — fail silently rather than blocking the dashboard
+    }
+  }
 
   async function refreshQueries() {
     try {
@@ -111,6 +129,7 @@ export default function DashboardPage() {
       await api.logActivity({ team_id: me.team_id, activity_type: "check_in", note: checkinNote || null });
       setCheckinStatus("Checked in — mentors will see your team as active.");
       setCheckinNote("");
+      await refreshTeam();
     } catch (err) {
       setError(err.message);
     }
@@ -271,6 +290,33 @@ export default function DashboardPage() {
                   <Button type="submit" variant="primary" size="md">Check In</Button>
                 </form>
                 {checkinStatus && <p style={{ marginTop: 8 }}>{checkinStatus}</p>}
+              </GlassCard>
+            </motion.div>
+
+            <motion.div className="dashboard-page__doubts" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.47 }}>
+              <div className="dashboard-page__section-title">Your team</div>
+              <GlassCard tone="light" className="dashboard-page__doubt-form-card">
+                <div className="dashboard-page__teammates">
+                  {teammates.length === 0 && <p className="dashboard-page__doubt-empty">No teammates yet.</p>}
+                  {teammates.map((t) => (
+                    <span key={t.id} className="dashboard-page__teammate-pill">{t.name}</span>
+                  ))}
+                </div>
+                <p className="dashboard-page__doubt-empty" style={{ marginTop: 10, marginBottom: 4 }}>
+                  Team log — only your teammates can see this.
+                </p>
+                <div className="dashboard-page__doubt-list">
+                  {teamActivity.length === 0 && <p className="dashboard-page__doubt-empty">No team activity logged yet.</p>}
+                  {teamActivity.map((a) => (
+                    <div key={a.id} className="dashboard-page__doubt-item">
+                      <div className="dashboard-page__doubt-item-top">
+                        <span className="dashboard-page__doubt-item-subject">{a.sender_name || "Teammate"}</span>
+                        <span className="dashboard-page__teammate-time">{new Date(a.timestamp).toLocaleString()}</span>
+                      </div>
+                      {a.note && <p className="dashboard-page__doubt-item-message">{a.note}</p>}
+                    </div>
+                  ))}
+                </div>
               </GlassCard>
             </motion.div>
 

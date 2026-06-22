@@ -199,6 +199,7 @@ class Activity(Base):
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"))
     activity_type: Mapped[str] = mapped_column(String(64))
     note: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    sender_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

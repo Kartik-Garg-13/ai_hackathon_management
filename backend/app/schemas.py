@@ -176,7 +176,14 @@ class ActivityOut(BaseModel):
     team_id: int
     activity_type: str
     note: str | None
+    sender_name: str | None = None
     timestamp: datetime
+
+
+class TeammateOut(BaseModel):
+    id: int
+    name: str
+    email: str
 
 
 class BurnoutReportEntry(BaseModel):

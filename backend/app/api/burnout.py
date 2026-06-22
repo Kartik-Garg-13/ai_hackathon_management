@@ -16,12 +16,18 @@ def log_activity(
     hackathon_id: int,
     payload: ActivityCreate,
     db: Session = Depends(get_db),
-    _: CurrentActor = Depends(require_hackathon_scope),
+    actor: CurrentActor = Depends(require_hackathon_scope),
 ):
     team = db.get(Team, payload.team_id)
     if not team or team.hackathon_id != hackathon_id:
         raise HTTPException(404, "Team not found")
-    activity = Activity(hackathon_id=hackathon_id, team_id=payload.team_id, activity_type=payload.activity_type, note=payload.note)
+    if actor.role == "participant" and getattr(actor.actor, "team_id", None) != payload.team_id:
+        raise HTTPException(403, "You can only log activity for your own team")
+    sender_name = actor.actor.name if actor.role == "participant" else None
+    activity = Activity(
+        hackathon_id=hackathon_id, team_id=payload.team_id, activity_type=payload.activity_type,
+        note=payload.note, sender_name=sender_name,
+    )
     db.add(activity)
     db.commit()
     db.refresh(activity)
