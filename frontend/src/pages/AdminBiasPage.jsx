@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import GlassCard from "../components/GlassCard.jsx";
 import RiskBadge from "../components/RiskBadge.jsx";
-import { api } from "../api.js";
+import { api, ensureHackathonSelected } from "../api.js";
 import "./AdminBiasPage.css";
 
 export default function AdminBiasPage() {
@@ -35,16 +35,26 @@ export default function AdminBiasPage() {
   const teamNameById = Object.fromEntries(teams.map((t) => [t.id, t.team_name]));
 
   useEffect(() => {
-    api.biasReport().then(setBias).catch((e) => setBiasError(e.message)).finally(() => setBiasLoading(false));
-    api.flaggedReviewers().then(setFlagged).catch((e) => setFlaggedError(e.message)).finally(() => setFlaggedLoading(false));
-    api.auditLog()
-      .then((data) => setAudit([...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))))
-      .catch((e) => setAuditError(e.message))
-      .finally(() => setAuditLoading(false));
-    api.listTeams().then((data) => {
-      setTeams(data);
-      if (data.length > 0) setSelectedTeamId(data[0].id);
-    }).catch((e) => setTeamsError(e.message));
+    ensureHackathonSelected().then((ok) => {
+      if (!ok) {
+        const msg = "No hackathon found for this account — create one from the dashboard first.";
+        setBiasError(msg); setBiasLoading(false);
+        setFlaggedError(msg); setFlaggedLoading(false);
+        setAuditError(msg); setAuditLoading(false);
+        setTeamsError(msg);
+        return;
+      }
+      api.biasReport().then(setBias).catch((e) => setBiasError(e.message)).finally(() => setBiasLoading(false));
+      api.flaggedReviewers().then(setFlagged).catch((e) => setFlaggedError(e.message)).finally(() => setFlaggedLoading(false));
+      api.auditLog()
+        .then((data) => setAudit([...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))))
+        .catch((e) => setAuditError(e.message))
+        .finally(() => setAuditLoading(false));
+      api.listTeams().then((data) => {
+        setTeams(data);
+        if (data.length > 0) setSelectedTeamId(data[0].id);
+      }).catch((e) => setTeamsError(e.message));
+    });
   }, []);
 
   useEffect(() => {

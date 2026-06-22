@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import GlassCard from "../components/GlassCard.jsx";
 import Button from "../components/Button.jsx";
 import { TextField, TagsField } from "../components/Field.jsx";
-import { api } from "../api.js";
+import { api, ensureHackathonSelected } from "../api.js";
 import "./AdminReviewersPage.css";
 
 const initialForm = {
@@ -39,8 +39,15 @@ export default function AdminReviewersPage() {
   }
 
   useEffect(() => {
-    loadReviewers();
-    api.listAssignments().then(setAssignments).catch(() => {});
+    ensureHackathonSelected().then((ok) => {
+      if (!ok) {
+        setListError("No hackathon found for this account — create one from the dashboard first.");
+        setListLoading(false);
+        return;
+      }
+      loadReviewers();
+      api.listAssignments().then(setAssignments).catch(() => {});
+    });
   }, []);
 
   function update(field, value) {

@@ -1,6 +1,20 @@
-import { getSession } from "./auth";
+import { getSession, setSession } from "./auth";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+// Self-heals a session that's missing hackathon_id (e.g. landed on an admin
+// page directly without going through "Manage" first) by picking the
+// organizer's first hackathon, instead of every hackathon-scoped call
+// throwing and crashing the page with no error boundary.
+export async function ensureHackathonSelected() {
+  const session = getSession();
+  if (session?.hackathon_id) return true;
+  if (!session?.auth_token) return false;
+  const hackathons = await api.listMyHackathons();
+  if (!hackathons.length) return false;
+  setSession({ ...session, hackathon_id: hackathons[0].id });
+  return true;
+}
 
 async function request(path, options = {}) {
   const session = getSession();

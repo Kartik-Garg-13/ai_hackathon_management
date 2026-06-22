@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import GlassCard from "../components/GlassCard.jsx";
 import Button from "../components/Button.jsx";
-import { api } from "../api.js";
+import { api, ensureHackathonSelected } from "../api.js";
 import "./AdminAnalyticsPage.css";
 
 const RISK_COLORS = {
@@ -25,14 +25,21 @@ export default function AdminAnalyticsPage() {
   const [revealError, setRevealError] = useState(null);
 
   useEffect(() => {
-    Promise.all([api.registrationAnalytics(), api.judgeDashboard()])
-      .then(([a, d]) => {
-        setData(a);
-        setDashboard(d);
-      })
-      .catch((err) => setError(err.message || "Could not load analytics."))
-      .finally(() => setLoading(false));
-    api.getWinners().then(setWinners).catch(() => {});
+    ensureHackathonSelected().then((ok) => {
+      if (!ok) {
+        setError("No hackathon found for this account — create one from the dashboard first.");
+        setLoading(false);
+        return;
+      }
+      Promise.all([api.registrationAnalytics(), api.judgeDashboard()])
+        .then(([a, d]) => {
+          setData(a);
+          setDashboard(d);
+        })
+        .catch((err) => setError(err.message || "Could not load analytics."))
+        .finally(() => setLoading(false));
+      api.getWinners().then(setWinners).catch(() => {});
+    });
   }, []);
 
   async function handleReveal() {

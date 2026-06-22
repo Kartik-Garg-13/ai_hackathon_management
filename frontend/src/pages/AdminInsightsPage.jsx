@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import GlassCard from "../components/GlassCard.jsx";
 import Button from "../components/Button.jsx";
-import { api } from "../api.js";
+import { api, ensureHackathonSelected } from "../api.js";
 import "./AdminInsightsPage.css";
 
 export default function AdminInsightsPage() {
@@ -26,8 +26,15 @@ export default function AdminInsightsPage() {
   const [compareError, setCompareError] = useState(null);
 
   useEffect(() => {
-    api.listTeams().then(setTeams).catch(() => {});
-    api.similarityReport().then(setSimilarity).catch((e) => setSimilarityError(e.message)).finally(() => setSimilarityLoading(false));
+    ensureHackathonSelected().then((ok) => {
+      if (!ok) {
+        setSimilarityError("No hackathon found for this account — create one from the dashboard first.");
+        setSimilarityLoading(false);
+        return;
+      }
+      api.listTeams().then(setTeams).catch(() => {});
+      api.similarityReport().then(setSimilarity).catch((e) => setSimilarityError(e.message)).finally(() => setSimilarityLoading(false));
+    });
   }, []);
 
   function teamName(id) {
