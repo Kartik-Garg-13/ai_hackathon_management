@@ -132,3 +132,13 @@ def test_evaluate_handles_mixed_null_and_string_ground_truth(sample_df):
     metrics = ri.evaluate(out)
     assert metrics is not None
     assert 0 <= metrics["accuracy"] <= 1
+
+
+def test_blank_phone_number_is_not_treated_as_invalid(sample_df):
+    df = sample_df.copy()
+    df["phone_number"] = ""
+    out = ri.analyze(df)
+    for reasons in out["reasons"]:
+        assert "Invalid Phone Format" not in reasons
+        assert "Duplicate Phone Number" not in reasons
+        assert "Shared Team Phone Number" not in reasons

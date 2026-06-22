@@ -437,36 +437,39 @@ def analyze(df: pd.DataFrame) -> pd.DataFrame:
             duplicate_penalty[idx] += 25
 
     if "phone_number" in df.columns:
+        # phone is optional at signup — leaving it blank is not the same as
+        # entering a garbage number, so blanks are excluded from every check below
+        phone_provided = df["phone_number"].astype(str).str.strip().ne("") & df["phone_number"].notna()
         validity = df["phone_number"].apply(phone_validity)
-        df["phone_valid_format"] = validity.apply(lambda t: t[0])
+        df["phone_valid_format"] = validity.apply(lambda t: t[0]) | ~phone_provided
         df["phone_normalized"] = validity.apply(lambda t: t[1])
-        for idx in df.index[~df["phone_valid_format"]]:
+        for idx in df.index[phone_provided & ~df["phone_valid_format"]]:
             duplicate_reasons[idx].append("Invalid Phone Format")
             duplicate_penalty[idx] += 40
 
-        phone_counts = df["phone_normalized"].value_counts()
+        phone_counts = df.loc[phone_provided, "phone_normalized"].value_counts()
         dup_phones = phone_counts[phone_counts > 1].index
         # same-team phone sharing is normal; only cross-team repeats are suspicious
-        phones_to_check = df[df["phone_normalized"].isin(dup_phones)]
+        phones_to_check = df[phone_provided & df["phone_normalized"].isin(dup_phones)]
         phone_team_counts = phones_to_check.groupby("phone_normalized")["team_id"].nunique()
         cross_team_dup_phones = phone_team_counts[phone_team_counts > 1].index
-        for idx in df.index[df["phone_normalized"].isin(cross_team_dup_phones)]:
+        for idx in df.index[phone_provided & df["phone_normalized"].isin(cross_team_dup_phones)]:
             duplicate_reasons[idx].append("Duplicate Phone Number")
             duplicate_penalty[idx] += 30
 
-        team_phone_groups = df.groupby("team_id")["phone_normalized"].nunique()
-        team_sizes_for_phone = df.groupby("team_id")["id"].size()
+        team_phone_groups = df[phone_provided].groupby("team_id")["phone_normalized"].nunique()
+        team_sizes_for_phone = df[phone_provided].groupby("team_id")["id"].size()
         shared_team_phone = team_phone_groups[
             (team_phone_groups == 1) & (team_sizes_for_phone > 1)
         ].index
-        df["shared_team_phone_flag"] = df["team_id"].isin(shared_team_phone)
+        df["shared_team_phone_flag"] = phone_provided & df["team_id"].isin(shared_team_phone)
         for idx in df.index[df["shared_team_phone_flag"]]:
             duplicate_reasons[idx].append("Shared Team Phone Number")
             duplicate_penalty[idx] += 20
 
         df["phone_trust_score"] = 100
-        df.loc[~df["phone_valid_format"], "phone_trust_score"] -= 60
-        df.loc[df["phone_normalized"].isin(cross_team_dup_phones), "phone_trust_score"] -= 40
+        df.loc[phone_provided & ~df["phone_valid_format"], "phone_trust_score"] -= 60
+        df.loc[phone_provided & df["phone_normalized"].isin(cross_team_dup_phones), "phone_trust_score"] -= 40
         df["phone_trust_score"] = df["phone_trust_score"].clip(lower=0)
     else:
         df["phone_trust_score"] = 100
