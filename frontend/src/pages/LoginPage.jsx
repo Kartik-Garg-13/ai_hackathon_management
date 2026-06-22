@@ -19,18 +19,20 @@ const EMPTY_FORM = {
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [mode, setMode] = useState("register");
   const [hackathons, setHackathons] = useState(null);
   const [hackathonId, setHackathonId] = useState("");
   const [form, setForm] = useState(EMPTY_FORM);
+  const [loginEmail, setLoginEmail] = useState("");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    api
-      .listOpenHackathons()
-      .then(setHackathons)
-      .catch(() => setHackathons([]));
-  }, []);
+    setHackathons(null);
+    setHackathonId("");
+    const fetcher = mode === "login" ? api.listAllPublicHackathons() : api.listOpenHackathons();
+    fetcher.then(setHackathons).catch(() => setHackathons([]));
+  }, [mode]);
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -47,6 +49,22 @@ export default function LoginPage() {
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "Could not complete registration.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    if (!hackathonId || !loginEmail.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const session = await api.loginParticipant(hackathonId, loginEmail.trim());
+      setSession(session);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message || "Could not find a registration with that email.");
     } finally {
       setSubmitting(false);
     }
@@ -96,16 +114,51 @@ export default function LoginPage() {
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }} className="login-page__form-wrap">
           <GlassCard tone="light" className="login-page__card">
             <div className="login-page__card-header">
-              <span className="login-page__eyebrow">Participant registration</span>
-              <h2>Join a hackathon</h2>
+              <span className="login-page__eyebrow">{mode === "login" ? "Participant login" : "Participant registration"}</span>
+              <h2>{mode === "login" ? "Welcome back" : "Join a hackathon"}</h2>
             </div>
 
+            <p className="login-page__no-hack-notice" style={{ marginBottom: 4 }}>
+              {mode === "login" ? "Already registered? " : "First time here? "}
+              <button
+                type="button"
+                style={{ background: "none", border: "none", color: "inherit", textDecoration: "underline", cursor: "pointer", padding: 0 }}
+                onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(null); }}
+              >
+                {mode === "login" ? "Register instead" : "Log in instead"}
+              </button>
+            </p>
+
             {hackathons === null ? (
-              <p className="login-page__no-hack-notice">Loading open hackathons&hellip;</p>
+              <p className="login-page__no-hack-notice">Loading hackathons&hellip;</p>
             ) : hackathons.length === 0 ? (
               <p className="login-page__no-hack-notice">
-                No hackathons are open for registration right now — check back soon.
+                {mode === "login" ? "No hackathons found." : "No hackathons are open for registration right now — check back soon."}
               </p>
+            ) : mode === "login" ? (
+              <>
+                {error && <div className="login-page__submit-error" role="alert">{error}</div>}
+                <form onSubmit={handleLogin} className="login-page__form" noValidate>
+                  <label className="login-page__hack-select-label">
+                    Hackathon
+                    <select
+                      className="login-page__hack-select"
+                      value={hackathonId}
+                      onChange={(e) => setHackathonId(e.target.value)}
+                      required
+                    >
+                      <option value="" disabled>Choose a hackathon&hellip;</option>
+                      {hackathons.map((h) => (
+                        <option key={h.id} value={h.id}>{h.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <TextField label="Email address" type="email" required value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} />
+                  <Button type="submit" variant="primary" size="lg" loading={submitting} disabled={!hackathonId || !loginEmail.trim()} className="login-page__submit">
+                    {submitting ? "Logging in…" : "Log in"}
+                  </Button>
+                </form>
+              </>
             ) : (
               <>
                 {error && <div className="login-page__submit-error" role="alert">{error}</div>}

@@ -33,7 +33,9 @@ def list_my_hackathons(
 
 
 @router.get("/public", response_model=list[HackathonOut])
-def list_open_hackathons(db: Session = Depends(get_db)):
+def list_open_hackathons(include_closed: bool = False, db: Session = Depends(get_db)):
+    if include_closed:
+        return db.query(Hackathon).order_by(Hackathon.created_at.desc()).all()
     now = datetime.utcnow()
     return (
         db.query(Hackathon)

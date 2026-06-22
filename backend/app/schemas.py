@@ -229,6 +229,10 @@ class AuthSession(BaseModel):
     hackathon_id: int | None = None
 
 
+class EmailLogin(BaseModel):
+    email: str
+
+
 class HackathonCreate(BaseModel):
     name: str
     description: str | None = None

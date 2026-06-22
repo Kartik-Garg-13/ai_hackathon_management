@@ -8,6 +8,7 @@ from app.database import get_db
 from app.models import Hackathon, InviteLink, Organizer, Participant, Reviewer, Team
 from app.schemas import (
     AuthSession,
+    EmailLogin,
     InviteInfo,
     InviteLinkOut,
     ParticipantRegisterViaInvite,
@@ -206,6 +207,30 @@ def register_participant_open(
 ):
     participant = _register_participant(db, hackathon_id, payload, get_client_ip(request))
     return AuthSession(auth_token=participant.auth_token, role="participant", name=participant.name, hackathon_id=participant.hackathon_id)
+
+
+@router.post("/{hackathon_id}/login/participant", response_model=AuthSession)
+def login_participant(hackathon_id: int, payload: EmailLogin, db: Session = Depends(get_db)):
+    participant = (
+        db.query(Participant)
+        .filter(Participant.hackathon_id == hackathon_id, Participant.email == payload.email)
+        .first()
+    )
+    if not participant:
+        raise HTTPException(404, "No participant registered with that email for this hackathon")
+    return AuthSession(auth_token=participant.auth_token, role="participant", name=participant.name, hackathon_id=participant.hackathon_id)
+
+
+@router.post("/{hackathon_id}/login/reviewer", response_model=AuthSession)
+def login_reviewer(hackathon_id: int, payload: EmailLogin, db: Session = Depends(get_db)):
+    reviewer = (
+        db.query(Reviewer)
+        .filter(Reviewer.hackathon_id == hackathon_id, Reviewer.email == payload.email)
+        .first()
+    )
+    if not reviewer:
+        raise HTTPException(404, "No mentor or judge registered with that email for this hackathon")
+    return AuthSession(auth_token=reviewer.auth_token, role=reviewer.role, name=reviewer.name, hackathon_id=reviewer.hackathon_id)
 
 
 @router.post("/{hackathon_id}/register/mentor", response_model=AuthSession)

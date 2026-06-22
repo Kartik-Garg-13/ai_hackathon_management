@@ -18,18 +18,22 @@ const EMPTY_FORM = {
 
 export default function MentorLoginPage() {
   const navigate = useNavigate();
+  const [mode, setMode] = useState("register");
   const [hackathons, setHackathons] = useState(null);
   const [hackathonId, setHackathonId] = useState("");
   const [form, setForm] = useState(EMPTY_FORM);
+  const [loginEmail, setLoginEmail] = useState("");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    api
-      .listOpenHackathons()
+    setHackathons(null);
+    setHackathonId("");
+    const fetcher = mode === "login" ? api.listAllPublicHackathons() : api.listOpenHackathons();
+    fetcher
       .then((all) => setHackathons(all.filter((h) => h.allow_mentors)))
       .catch(() => setHackathons([]));
-  }, []);
+  }, [mode]);
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -50,6 +54,22 @@ export default function MentorLoginPage() {
       navigate("/mentor/dashboard");
     } catch (err) {
       setError(err.message || "Could not complete registration.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    if (!hackathonId || !loginEmail.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const session = await api.loginReviewer(hackathonId, loginEmail.trim());
+      setSession(session);
+      navigate("/mentor/dashboard");
+    } catch (err) {
+      setError(err.message || "Could not find a registration with that email.");
     } finally {
       setSubmitting(false);
     }
@@ -80,18 +100,53 @@ export default function MentorLoginPage() {
               Mentor
             </div>
 
-            <h2 className="mentor-login-page__title">Join a hackathon</h2>
+            <h2 className="mentor-login-page__title">{mode === "login" ? "Welcome back" : "Join a hackathon"}</h2>
             <p className="mentor-login-page__sub">
-              Pick any hackathon that's open for mentor registration — no
-              invite link required.
+              {mode === "login"
+                ? "Log back in to a hackathon you've already joined as a mentor."
+                : "Pick any hackathon that's open for mentor registration — no invite link required."}
+            </p>
+            <p className="mentor-login-page__sub">
+              {mode === "login" ? "First time here? " : "Already registered? "}
+              <button
+                type="button"
+                style={{ background: "none", border: "none", color: "inherit", textDecoration: "underline", cursor: "pointer", padding: 0 }}
+                onClick={() => { setMode(mode === "login" ? "register" : "login"); setError(null); }}
+              >
+                {mode === "login" ? "Register instead" : "Log in instead"}
+              </button>
             </p>
 
             {hackathons === null ? (
-              <p className="mentor-login-page__status">Loading open hackathons&hellip;</p>
+              <p className="mentor-login-page__status">Loading hackathons&hellip;</p>
             ) : hackathons.length === 0 ? (
               <p className="mentor-login-page__status">
-                No hackathons are open for mentor registration right now — check back soon.
+                {mode === "login" ? "No hackathons found." : "No hackathons are open for mentor registration right now — check back soon."}
               </p>
+            ) : mode === "login" ? (
+              <>
+                {error && <div className="mentor-login-page__error" role="alert">{error}</div>}
+                <form onSubmit={handleLogin} className="mentor-login-page__form" noValidate>
+                  <label className="mentor-login-page__label">
+                    Hackathon
+                    <select
+                      className="mentor-login-page__select"
+                      value={hackathonId}
+                      onChange={(e) => setHackathonId(e.target.value)}
+                      required
+                    >
+                      <option value="" disabled>Choose a hackathon&hellip;</option>
+                      {hackathons.map((h) => (
+                        <option key={h.id} value={h.id}>{h.name}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <TextField label="Email address" type="email" required value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} />
+                  <Button type="submit" variant="primary" size="lg" loading={submitting} disabled={!hackathonId || !loginEmail.trim()} className="mentor-login-page__submit">
+                    {submitting ? "Logging in…" : "Log in"}
+                  </Button>
+                </form>
+              </>
             ) : (
               <>
                 {error && <div className="mentor-login-page__error" role="alert">{error}</div>}

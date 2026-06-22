@@ -67,6 +67,7 @@ export const api = {
     }),
 
   listOpenHackathons: () => request("/api/hackathons/public"),
+  listAllPublicHackathons: () => request("/api/hackathons/public?include_closed=true"),
   registerParticipant: (hackathonId, payload) =>
     request(`/api/hackathons/${hackathonId}/register/participant`, {
       method: "POST",
@@ -78,6 +79,18 @@ export const api = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+    }),
+  loginParticipant: (hackathonId, email) =>
+    request(`/api/hackathons/${hackathonId}/login/participant`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }),
+  loginReviewer: (hackathonId, email) =>
+    request(`/api/hackathons/${hackathonId}/login/reviewer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
     }),
 
   uploadRegistrations: (file) => {
