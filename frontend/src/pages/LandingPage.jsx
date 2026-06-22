@@ -140,6 +140,10 @@ export default function LandingPage() {
           <Stat value="100+" label="Participants per event" />
           <Stat value="0 bias" label="Reviewer assignment goal" />
         </div>
+
+        <button className="landing-page__about-link" onClick={() => navigate("/about")}>
+          About us →
+        </button>
       </motion.div>
       </div>
     </>

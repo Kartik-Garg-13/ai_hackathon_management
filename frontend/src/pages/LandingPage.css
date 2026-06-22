@@ -188,6 +188,20 @@
   letter-spacing: 0.06em;
 }
 
+.landing-page__about-link {
+  display: block;
+  margin: 1.6rem auto 0;
+  background: none;
+  border: none;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--c-steel);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.landing-page__about-link:hover { color: var(--c-steel-bright); }
+
 @media (max-width: 600px) {
   .landing-page__cards { flex-direction: column; }
   .landing-page__stats { gap: 1.5rem; }
