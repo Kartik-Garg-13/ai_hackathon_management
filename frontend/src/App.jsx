@@ -2,7 +2,7 @@ import { Navigate, BrowserRouter, Routes, Route } from "react-router-dom";
 import { getSession } from "./auth";
 
 import LandingPage from "./pages/LandingPage.jsx";
-import AboutPage from "./pages/AboutPage.jsx";
+import SiteFooter from "./components/SiteFooter.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import JoinPage from "./pages/JoinPage.jsx";
@@ -36,7 +36,6 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/about" element={<AboutPage />} />
         <Route path="/join/:token" element={<JoinPage />} />
 
         <Route path="/participant/login" element={<LoginPage />} />
@@ -135,6 +134,7 @@ export default function App() {
           }
         />
       </Routes>
+      <SiteFooter />
     </BrowserRouter>
   );
 }

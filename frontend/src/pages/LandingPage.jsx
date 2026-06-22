@@ -1,24 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import NetworkField from "../components/NetworkField.jsx";
 import BrandName from "../components/BrandName.jsx";
 import BrainIntro from "../components/BrainIntro.jsx";
-import { api } from "../api.js";
 import "./LandingPage.css";
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [pastHackathons, setPastHackathons] = useState([]);
-
-  useEffect(() => {
-    api.listAllPublicHackathons()
-      .then((all) => {
-        const now = new Date();
-        setPastHackathons(all.filter((h) => h.registration_deadline && new Date(h.registration_deadline) < now));
-      })
-      .catch(() => {});
-  }, []);
 
   return (
     <>
@@ -151,34 +140,6 @@ export default function LandingPage() {
           <Stat value="100+" label="Participants per event" />
           <Stat value="0 bias" label="Reviewer assignment goal" />
         </div>
-
-        <button className="landing-page__about-link" onClick={() => navigate("/about")}>
-          About us →
-        </button>
-
-        {pastHackathons.length > 0 && (
-          <motion.div
-            className="landing-page__past-section"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="landing-page__past-title">Previous hackathons conducted</h2>
-            <div className="landing-page__past-grid">
-              {pastHackathons.map((h) => (
-                <div key={h.id} className="landing-page__past-card">
-                  <span className="landing-page__past-name">{h.name}</span>
-                  {h.start_date && (
-                    <span className="landing-page__past-date">
-                      {new Date(h.start_date).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
       </motion.div>
       </div>
     </>

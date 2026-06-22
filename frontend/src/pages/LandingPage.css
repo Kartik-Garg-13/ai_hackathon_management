@@ -188,64 +188,6 @@
   letter-spacing: 0.06em;
 }
 
-.landing-page__about-link {
-  display: block;
-  margin: 1.6rem auto 0;
-  background: none;
-  border: none;
-  font-family: var(--f-display);
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--c-steel);
-  cursor: pointer;
-  transition: color 0.2s;
-}
-.landing-page__about-link:hover { color: var(--c-steel-bright); }
-
-.landing-page__past-section {
-  margin-top: 2.4rem;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(70, 130, 180, 0.16);
-}
-
-.landing-page__past-title {
-  font-family: var(--f-display);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--c-text-on-light);
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.landing-page__past-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.9rem;
-}
-
-.landing-page__past-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(70, 130, 180, 0.16);
-  border-radius: var(--r-sm);
-  padding: 0.8rem 1.2rem;
-  min-width: 180px;
-}
-
-.landing-page__past-name {
-  font-weight: 700;
-  font-size: 0.88rem;
-  color: var(--c-text-on-light);
-}
-
-.landing-page__past-date {
-  font-size: 0.74rem;
-  color: var(--c-text-muted-light);
-}
-
 @media (max-width: 600px) {
   .landing-page__cards { flex-direction: column; }
   .landing-page__stats { gap: 1.5rem; }
