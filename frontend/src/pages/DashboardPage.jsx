@@ -284,7 +284,10 @@ export default function DashboardPage() {
                 </form>
                 {linksSaved && <p style={{ marginTop: 8 }}>Saved — judges will see repo health checks alongside your pitch deck review.</p>}
 
-                <label className="dashboard-page__doubt-select-label" style={{ marginTop: 16 }}>
+                <label
+                  className={`dashboard-page__file-upload-label ${uploading ? "dashboard-page__file-upload-label--disabled" : ""}`}
+                  style={{ marginTop: 16 }}
+                >
                   {uploading ? "Analyzing…" : "Upload pitch deck (.pptx)"}
                   <input type="file" accept=".pptx" onChange={handlePitchUpload} style={{ display: "none" }} disabled={uploading} />
                 </label>
