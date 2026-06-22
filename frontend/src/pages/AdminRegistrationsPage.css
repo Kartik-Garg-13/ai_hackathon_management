@@ -256,6 +256,11 @@
   color: var(--c-text-muted-light);
 }
 
+.admin-reg-page__row-team {
+  font-weight: 400;
+  color: var(--c-text-muted-light);
+}
+
 .admin-reg-page__db-card { padding: 1.8rem 2rem; }
 
 .admin-reg-page__db-table {

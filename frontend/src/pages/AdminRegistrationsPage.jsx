@@ -198,7 +198,10 @@ export default function AdminRegistrationsPage() {
               <div className="admin-reg-page__table">
                 {rows.map((row) => (
                   <button key={row.id} className="admin-reg-page__row" onClick={() => setSelected(row)}>
-                    <span className="admin-reg-page__row-name">{row.team_name || row.name}</span>
+                    <span className="admin-reg-page__row-name">
+                      {row.name}
+                      {row.team_name && <span className="admin-reg-page__row-team"> · {row.team_name}</span>}
+                    </span>
                     {row.final_risk_level ? <RiskBadge level={row.final_risk_level} kind="registration" /> : <span className="admin-reg-page__row-explanation">Not yet analyzed</span>}
                     <span className="admin-reg-page__row-explanation">{row.approval_status}</span>
                   </button>
@@ -213,7 +216,7 @@ export default function AdminRegistrationsPage() {
         <div className="admin-reg-page__modal-backdrop" onClick={() => setSelected(null)}>
           <div className="admin-reg-page__modal" onClick={(e) => e.stopPropagation()}>
             <button className="admin-reg-page__modal-close" onClick={() => setSelected(null)}>×</button>
-            <h2>{selected.team_name || selected.name}</h2>
+            <h2>{selected.name}{selected.team_name ? ` · ${selected.team_name}` : ""}</h2>
             {selected.final_risk_level && <RiskBadge level={selected.final_risk_level} kind="registration" />}
             <p className="admin-reg-page__modal-explanation">{selected.explanation}</p>
             {Array.isArray(selected.reasons) && selected.reasons.length > 0 && (
