@@ -1,60 +1,89 @@
-# AI Hackathon Platform — Core 3 AI Features
+# DELLigent Minds — AI Hackathon Platform
 
-An AI-powered hackathon management platform implementing the **3 judged core AI
-features**: Registration Intelligence, Reviewer Assignment Intelligence, and
-Bias Detection & Fairness Engine. Built as a FastAPI + SQLite backend with a
-minimal React frontend.
+A multi-tenant hackathon management platform covering the full event
+lifecycle — registration, judging, mentoring, and live oversight — with 11
+AI features built entirely on classical ML and statistics. No LLM API key
+anywhere in the stack: every "AI" feature is TF-IDF, cosine similarity,
+IsolationForest, DBSCAN, GaussianMixture, KMeans, z-score statistics, or
+`ast`-module structural analysis.
 
-## Scope
+Started from a single Jupyter notebook (`Untitled2.ipynb`) doing fraud
+detection on a CSV of registrations; grew into a full FastAPI backend +
+React frontend with real multi-tenant auth and four distinct roles.
 
-This pass implements:
+## The 11 AI features
 
-1. **Registration Intelligence** — duplicate/fraud detection, email & phone
-   validation, skill/project alignment, trust scoring, explainable reasons,
-   ground-truth evaluation. Ported from the original `Untitled2.ipynb`
-   exploration notebook into `backend/app/services/registration_intelligence.py`
-   — same algorithms, now callable from an API.
-2. **Reviewer Assignment Intelligence** — TF-IDF/cosine matching of reviewer
-   expertise to project requirements, conflict-of-interest blocking, and
-   load-balanced greedy assignment.
-3. **Bias Detection & Fairness Engine** — leave-one-out z-score analysis per
-   reviewer, IQR outlier detection within a reviewer's own scores, a combined
-   bias risk level + confidence, and an immutable audit trail.
-
-**Deliberately out of scope for this pass:** the code workspace, chatbot,
-judge assistant, project-similarity/plagiarism detectors, mentor matching,
-burnout detection, and the broader admin panel (event builder, sponsor
-management, trend engine). The API/DB/service-layer pattern established here
-(FastAPI router → service module → SQLAlchemy model) generalizes directly to
-those features without re-architecting.
+1. **Registration Intelligence** — exact/fuzzy-name/email-typo/near-duplicate
+   detection (TF-IDF + GMM), IsolationForest anomaly scoring, DBSCAN
+   fraud-ring grouping, shared-IP and duplicate-GitHub-username signals,
+   final trust score with a plain-English explanation.
+2. **Reviewer Assignment** — TF-IDF matching of judge expertise to project
+   domain, fuzzy conflict detection (shared college/org), load-balanced
+   greedy assignment.
+3. **Bias Detection & Fairness** — leave-one-out z-score vs. population,
+   IQR outlier detection, plain-English summaries.
+4. **AI Judge Assistant** — combines pitch-deck scoring (innovation/
+   technical/presentation) with a live GitHub repo health check (tests, CI,
+   deployment config, README).
+5. **Hackathon Copilot** — retrieval-only TF-IDF FAQ assistant; explicitly
+   not generative, with an honest fallback when there's no good match.
+6. **Burnout Detection** — activity-trend heuristics flag teams going quiet.
+7. **Smart Reviewer Rotation** — rescales scores against each reviewer's own
+   tendency so a harsh and a lenient reviewer converge toward a fair value.
+8. **AI Mentor Matching** — TF-IDF similarity between a participant's
+   question and mentor expertise/bio, with load-balanced fallback.
+9. **Judge Dashboard** — live composite view: team counts, active/inactive
+   split, category distribution, bias-adjusted leaderboard.
+10. **Project Similarity Detector** — TF-IDF + cosine similarity flags
+    near-duplicate project ideas; KMeans clusters all projects into labeled
+    categories with counts.
+11. **Live Plagiarism Detection** — fetches teams' GitHub repos live via the
+    GitHub API; real `ast`-module structural comparison for Python files,
+    text-diff similarity for other languages, plus commit-history stats.
 
 ## Architecture
 
 ```
 backend/
   app/
-    main.py                # FastAPI app, CORS, routers
-    database.py            # SQLAlchemy engine (DATABASE_URL env var)
-    models.py               # Team, Participant, Reviewer, Assignment, Score, AuditLog
-    schemas.py               # Pydantic request/response models
+    main.py                       # FastAPI app, CORS, router registration
+    database.py                   # SQLAlchemy engine (DATABASE_URL env var)
+    auth.py                       # stdlib-only auth — PBKDF2 + opaque tokens
+    models.py                     # Hackathon, Team, Participant, Reviewer, Score, ...
+    schemas.py                    # Pydantic request/response models
     services/
-      registration_intelligence.py   # ported notebook logic
-      skill_taxonomy.py               # shared by features 1 & 2
-      reviewer_assignment.py          # TF-IDF matching, conflicts, load balancing
-      bias_detection.py                # z-score/IQR fairness engine
-    api/
-      registrations.py
-      reviewers.py
-      bias.py
-  scripts/seed_demo_data.py  # loads sample_data/test.csv + synthetic reviewers/scores
-  tests/                      # pytest unit + API smoke tests
-frontend/                    # Vite + React, minimal CSS, 3 pages
-sample_data/test.csv         # 10,000-row synthetic registration dataset with ground truth labels
+      registration_intelligence.py  # fraud/duplicate detection
+      skill_taxonomy.py             # shared skill/category taxonomy
+      reviewer_assignment.py        # TF-IDF matching, conflicts, load balancing
+      bias_detection.py             # z-score/IQR fairness engine
+      pitch_analyzer.py             # pitch deck scoring
+      repo_inspector.py             # GitHub repo health checks
+      similarity_detector.py        # project similarity + clustering
+      plagiarism_detector.py        # GitHub repo AST/text comparison
+      mentor_matcher.py             # TF-IDF mentor matching
+      mentor_leaderboard.py
+      burnout_detection.py
+      copilot.py
+    api/                          # one router module per feature area
+  scripts/seed_demo_data.py       # loads sample_data/test.csv + synthetic reviewers/scores
+  tests/                          # 74 pytest unit + API smoke tests
+frontend/                         # Vite + React, role-based dashboards
+sample_data/test.csv              # 10,000-row synthetic registration dataset with ground truth labels
 ```
 
-Database uses only cross-dialect SQLAlchemy types (`JSON`, `String`, `Float`,
-`Integer`, `DateTime`), so switching from SQLite to Postgres later is just
-changing `DATABASE_URL` — no model changes required.
+Database uses only cross-dialect SQLAlchemy types, so switching from SQLite
+to Postgres later is just changing `DATABASE_URL` — no model changes
+required. Every table is scoped by `hackathon_id`; one organizer can run
+multiple hackathons.
+
+## Roles & registration
+
+- **Organizer** — creates hackathons, manages registrations, runs reviewer
+  assignment, generates judge invite links.
+- **Judge** — invite-link only, the one role that still requires organizer
+  approval.
+- **Mentor** and **Participant** — self-register to any open hackathon via
+  `GET /api/hackathons/public`, no invite link required.
 
 ## Setup
 
@@ -65,19 +94,21 @@ cd backend
 python -m venv .venv
 .venv/Scripts/activate   # or source .venv/bin/activate on Linux/Mac
 pip install -r requirements.txt
-python scripts/seed_demo_data.py   # seeds DB with sample_data/test.csv + demo reviewers/scores
+python scripts/seed_demo_data.py   # wipes and reseeds the DB
 uvicorn app.main:app --reload
 ```
 
 API docs: http://localhost:8000/docs
+
+Demo organizer login: `organizer@demo.dev` / `demo1234`. The seed script
+prints a fresh judge invite link each run.
 
 ### Frontend
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env   # points at http://localhost:8000 by default
-npm run dev
+npm run dev -- --port 5173
 ```
 
 Open http://localhost:5173
@@ -88,19 +119,6 @@ Open http://localhost:5173
 docker compose up --build
 ```
 
-Backend on :8000, frontend on :4173. SQLite file persists in the
-`backend_data` volume.
-
-## API overview
-
-| Feature | Endpoints |
-|---|---|
-| Registration Intelligence | `POST /api/registrations/upload`, `GET /api/registrations`, `GET /api/registrations/{id}`, `GET /api/registrations/analytics` |
-| Reviewer Assignment | `POST /api/reviewers`, `GET /api/reviewers`, `POST /api/reviewers/assign`, `GET /api/reviewers/assignments` |
-| Bias Detection | `POST /api/scores`, `GET /api/bias/reviewers`, `GET /api/bias/flagged`, `GET /api/audit-log` |
-
-Full interactive docs (OpenAPI/Swagger) at `/docs` once the backend is running.
-
 ## Testing
 
 ```bash
@@ -108,24 +126,30 @@ cd backend
 pytest -v
 ```
 
-21 tests: unit tests for each service (registration scoring against known
-fixtures, reviewer conflict/load-balancing logic, bias z-score math) plus
-FastAPI `TestClient` smoke tests exercising upload → assign → score → bias
-report end-to-end.
+74 tests: unit tests for each service (registration scoring, reviewer
+conflict/load-balancing, bias z-score math, similarity/plagiarism
+detection, mentor matching) plus FastAPI `TestClient` smoke tests exercising
+full flows end-to-end — registration → reanalysis → reviewer assignment →
+scoring → bias report.
 
-## Verified results (full 10,000-row sample dataset)
+## Verified results (live-tested, not estimated)
 
-- Registration Intelligence: 85.8% accuracy, 0.71 macro F1, 0.93 ROC-AUC vs.
-  ground truth labels; full pipeline runs in ~32s for 10,000 rows.
-- Reviewer Assignment: conflict detection correctly excludes reviewers sharing
-  a team's college/organization; load balancing distributes assignments
-  evenly across capacity.
-- Bias Detection: a seeded reviewer scoring ~20 points below the population
-  mean is correctly flagged "High" bias risk (z ≈ -2.85).
+- Registration: a single new entry processes in ~0.3s (full duplicate/fraud
+  pipeline); 93.4% recall on the full 10,000-row ground-truth dataset.
+- Reviewer assignment: ~0.6s for the full seeded dataset (4,108 teams).
+- Bias detection: 100% accuracy/recall/precision on a 20-reviewer synthetic
+  benchmark (14 fair, 6 deliberately biased) after fixing a threshold bug
+  that conflated within-reviewer score variance with population-level bias.
+- Known, honestly-flagged limitations: skill taxonomy covers ~33 common
+  terms (novel skills fall into a generic "Other" bucket); plagiarism AST
+  comparison is real only for Python, text-diff for other languages; demo
+  video URLs are stored but not AI-analyzed.
 
-## Notes for the team building the final frontend
+## Notes on the frontend
 
-The React app is intentionally thin — 3 page components, no business logic,
-calling the JSON API directly via `frontend/src/api.js`. Swap the UI without
-touching the backend; the API contract (`schemas.py`) is the integration
-point.
+The React app uses a team-provided design system (Winter Network theme) with
+real backend-driven logic underneath — no fake/localStorage auth anywhere.
+Landing page features an interactive 3D brain visualization
+(`frontend/src/components/BrainIntro.jsx`) showcasing all 11 features as
+nodes in a procedurally-generated neural network, built with
+`@react-three/fiber`.
