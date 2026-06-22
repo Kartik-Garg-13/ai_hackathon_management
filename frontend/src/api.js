@@ -46,6 +46,12 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }),
+  judgeLogin: (email) =>
+    request("/api/auth/judge/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    }),
 
   listMyHackathons: () => request("/api/hackathons"),
   createHackathon: (payload) =>

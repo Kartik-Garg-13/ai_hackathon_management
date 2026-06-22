@@ -41,8 +41,8 @@ NEW_HACKATHONS = [
 ]
 
 JUDGE_PANEL = [
-    {"name": "Prof. Anika Rao", "expertise": ["AI/ML", "Data"], "experience_years": 8, "organization": "MUJ Faculty", "industry": "Academia", "availability_window": "Flexible", "bio": "Guest judge."},
-    {"name": "Mr. Devraj Shah", "expertise": ["Frontend", "Backend", "Cloud/DevOps"], "experience_years": 6, "organization": "Industry Partner", "industry": "Software", "availability_window": "Flexible", "bio": "Guest judge."},
+    {"name": "Prof. Anika Rao", "email": "anika.rao@muj-faculty.demo", "expertise": ["AI/ML", "Data"], "experience_years": 8, "organization": "MUJ Faculty", "industry": "Academia", "availability_window": "Flexible", "bio": "Guest judge."},
+    {"name": "Mr. Devraj Shah", "email": "devraj.shah@industry-partner.demo", "expertise": ["Frontend", "Backend", "Cloud/DevOps"], "experience_years": 6, "organization": "Industry Partner", "industry": "Software", "availability_window": "Flexible", "bio": "Guest judge."},
 ]
 
 
@@ -84,7 +84,12 @@ def main():
 
         judges = []
         for jspec in JUDGE_PANEL:
-            judge = Reviewer(hackathon_id=new_hackathon.id, role="judge", auth_token=generate_token(), max_load=len(team_group), **jspec)
+            # Email is made unique per hackathon since judge login looks accounts
+            # up by email alone — reusing the same guest judge across hackathons
+            # would make that lookup ambiguous.
+            local_part, domain = jspec["email"].split("@")
+            unique_spec = {**jspec, "email": f"{local_part}.h{new_hackathon.id}@{domain}"}
+            judge = Reviewer(hackathon_id=new_hackathon.id, role="judge", auth_token=generate_token(), max_load=len(team_group), **unique_spec)
             db.add(judge)
             judges.append(judge)
         db.flush()
