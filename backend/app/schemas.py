@@ -10,8 +10,10 @@ class ParticipantOut(BaseModel):
     registration_id: str
     name: str
     email: str
+    phone_number: str | None = None
     team_id: int | None = None
     college: str | None = None
+    skills: str | None = None
     team_name: str | None = None
     project_idea: str | None = None
     final_trust_score: float | None = None
@@ -31,6 +33,7 @@ class ParticipantOut(BaseModel):
     consent_accepted: bool = False
     dietary_restriction: str | None = None
     emergency_contact: str | None = None
+    created_at: datetime
 
 
 class RegistrationAnalytics(BaseModel):

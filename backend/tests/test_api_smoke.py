@@ -210,12 +210,16 @@ def test_self_registration_is_pending_until_reanalyzed_then_approval_workflow(cl
     participant_token_auth = resp.json()["auth_token"]
     participant_headers = {"Authorization": f"Bearer {participant_token_auth}"}
 
+    # Approval is still pending organizer review, but risk analysis itself now
+    # runs immediately on registration (re-scored against the full population)
+    # rather than waiting for an explicit reanalyze trigger.
     resp = client.get(f"/api/hackathons/{hackathon_id}/registrations", headers=headers, params={"approval_status": "pending"})
     assert resp.status_code == 200
     pending = [r for r in resp.json() if r["email"] == "pendingtester@example.dev"]
     assert len(pending) == 1
-    assert pending[0]["final_trust_score"] is None
+    assert pending[0]["final_trust_score"] is not None
 
+    # Re-analyze All remains available for the organizer to manually re-run later.
     resp = client.post(f"/api/hackathons/{hackathon_id}/registrations/reanalyze", headers=headers)
     assert resp.status_code == 200
     assert resp.json()["participants_analyzed"] >= 4

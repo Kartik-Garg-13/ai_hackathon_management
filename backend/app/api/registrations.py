@@ -120,18 +120,15 @@ def list_registrations(
     return q.order_by(Participant.final_trust_score.asc()).offset(offset).limit(limit).all()
 
 
-@router.post("/reanalyze", response_model=ReanalyzeResult)
-def reanalyze_registrations(
-    hackathon_id: int,
-    db: Session = Depends(get_db),
-    actor: CurrentActor = Depends(require_hackathon_scope),
-):
-    if actor.role != "organizer":
-        raise HTTPException(403, "Only the organizer can trigger a re-analysis")
-
+def reanalyze_all_participants(hackathon_id: int, db: Session) -> tuple[int, dict | None]:
+    """Re-scores every participant in a hackathon against the full current
+    population (duplicate/fraud-ring/anomaly detection are population-relative,
+    so a single new registration is re-run against everyone, not in isolation).
+    Used both by the organizer-triggered /reanalyze endpoint and automatically
+    right after a new self-registration, so risk data is never stale."""
     participants = db.query(Participant).filter(Participant.hackathon_id == hackathon_id).all()
     if not participants:
-        raise HTTPException(400, "No registrations to analyze yet")
+        return 0, None
 
     team_members: dict[str, list[Participant]] = {}
     for p in participants:
@@ -173,7 +170,23 @@ def reanalyze_registrations(
         participant.predicted_label = str(row["predicted_label"])
     db.commit()
 
-    return ReanalyzeResult(participants_analyzed=len(participants), ground_truth_metrics=metrics)
+    return len(participants), metrics
+
+
+@router.post("/reanalyze", response_model=ReanalyzeResult)
+def reanalyze_registrations(
+    hackathon_id: int,
+    db: Session = Depends(get_db),
+    actor: CurrentActor = Depends(require_hackathon_scope),
+):
+    if actor.role != "organizer":
+        raise HTTPException(403, "Only the organizer can trigger a re-analysis")
+
+    count, metrics = reanalyze_all_participants(hackathon_id, db)
+    if count == 0:
+        raise HTTPException(400, "No registrations to analyze yet")
+
+    return ReanalyzeResult(participants_analyzed=count, ground_truth_metrics=metrics)
 
 
 @router.post("/{participant_id}/approve", response_model=ApprovalAction)

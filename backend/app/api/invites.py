@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.auth import generate_token, require_organizer
@@ -14,6 +14,7 @@ from app.schemas import (
     ParticipantRegisterViaInvite,
     ReviewerRegisterViaInvite,
 )
+from app.api.registrations import reanalyze_all_participants
 from app.services.registration_intelligence import email_intelligence, phone_validity
 
 router = APIRouter(prefix="/api/hackathons", tags=["invites"])
@@ -124,7 +125,21 @@ def _register_reviewer(db: Session, hackathon_id: int, role: str, payload: Revie
     return reviewer
 
 
-def _register_participant(db: Session, hackathon_id: int, payload: ParticipantRegisterViaInvite, server_ip: str) -> Participant:
+def _safe_reanalyze(hackathon_id: int, db: Session) -> None:
+    # Analysis is a best-effort enhancement, not a registration requirement --
+    # a tiny population with no text content (e.g. a single registrant, no
+    # skills/project_idea yet) can make the TF-IDF step raise, and that must
+    # never surface as a failure once it's already running in the background.
+    try:
+        reanalyze_all_participants(hackathon_id, db)
+    except Exception:
+        db.rollback()
+
+
+def _register_participant(
+    db: Session, hackathon_id: int, payload: ParticipantRegisterViaInvite, server_ip: str,
+    background_tasks: BackgroundTasks,
+) -> Participant:
     if not payload.consent_accepted:
         raise HTTPException(400, "You must accept the code of conduct to register")
 
@@ -170,6 +185,13 @@ def _register_participant(db: Session, hackathon_id: int, payload: ParticipantRe
     db.add(participant)
     db.commit()
     db.refresh(participant)
+
+    # Re-score everyone against the full population right after responding,
+    # so a new signup never sits at "not yet analyzed" for long -- but
+    # re-running the ML pipeline over a large hackathon takes too long to do
+    # inline (seconds, sometimes much more), so it must not block the
+    # response the participant is waiting on.
+    background_tasks.add_task(_safe_reanalyze, hackathon_id, db)
     return participant
 
 
@@ -188,13 +210,14 @@ def register_participant_via_invite(
     token: str,
     payload: ParticipantRegisterViaInvite,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     link = db.query(InviteLink).filter(InviteLink.token == token).first()
     if not link or link.role != "participant":
         raise HTTPException(404, "Invite link not found or not valid for participants")
 
-    participant = _register_participant(db, link.hackathon_id, payload, get_client_ip(request))
+    participant = _register_participant(db, link.hackathon_id, payload, get_client_ip(request), background_tasks)
     return AuthSession(auth_token=participant.auth_token, role="participant", name=participant.name, hackathon_id=participant.hackathon_id)
 
 
@@ -203,9 +226,10 @@ def register_participant_open(
     hackathon_id: int,
     payload: ParticipantRegisterViaInvite,
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
-    participant = _register_participant(db, hackathon_id, payload, get_client_ip(request))
+    participant = _register_participant(db, hackathon_id, payload, get_client_ip(request), background_tasks)
     return AuthSession(auth_token=participant.auth_token, role="participant", name=participant.name, hackathon_id=participant.hackathon_id)
 
 

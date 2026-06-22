@@ -295,6 +295,23 @@ export default function AdminRegistrationsPage() {
                 {selected.academic_year && <div><strong>Academic year:</strong> {selected.academic_year}</div>}
               </div>
             )}
+
+            <div className="admin-reg-page__details-section">
+              <span className="admin-reg-page__details-title">Registration details</span>
+              <div className="admin-reg-page__details-grid">
+                <div><strong>Email:</strong> {selected.email}</div>
+                {selected.phone_number && <div><strong>Phone:</strong> {selected.phone_number}</div>}
+                {selected.college && <div><strong>College:</strong> {selected.college}</div>}
+                {selected.skills && <div><strong>Skills:</strong> {selected.skills}</div>}
+                {selected.project_idea && <div><strong>Project idea:</strong> {selected.project_idea}</div>}
+                {selected.dietary_restriction && <div><strong>Dietary restriction:</strong> {selected.dietary_restriction}</div>}
+                {selected.emergency_contact && <div><strong>Emergency contact:</strong> {selected.emergency_contact}</div>}
+                <div><strong>Consent accepted:</strong> {selected.consent_accepted ? "Yes" : "No"}</div>
+                <div><strong>Registration ID:</strong> {selected.registration_id}</div>
+                {selected.created_at && <div><strong>Registered:</strong> {new Date(selected.created_at).toLocaleString()}</div>}
+              </div>
+            </div>
+
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               <Button variant="primary" size="sm" onClick={() => handleApprove(selected.id)}>Approve</Button>
               <Button variant="outline" size="sm" onClick={() => handleReject(selected.id)}>Reject</Button>

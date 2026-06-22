@@ -409,6 +409,36 @@
   padding: 0.8rem 1rem;
 }
 
+.admin-reg-page__details-section {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(70, 130, 180, 0.16);
+  padding-top: 1rem;
+}
+
+.admin-reg-page__details-title {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-muted-light);
+  margin-bottom: 0.6rem;
+}
+
+.admin-reg-page__details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1.2rem;
+  font-size: 0.85rem;
+  color: var(--c-text-on-light);
+}
+.admin-reg-page__details-grid > div { word-break: break-word; }
+.admin-reg-page__details-grid strong { color: var(--c-text-muted-light); font-weight: 600; }
+
+@media (max-width: 480px) {
+  .admin-reg-page__details-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 720px) {
   .admin-reg-page__header { padding: 1.2rem 1.5rem; }
   .admin-reg-page__main { padding: 2rem 1.2rem 3rem; }
