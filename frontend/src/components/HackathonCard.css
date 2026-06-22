@@ -1,0 +1,96 @@
+.hack-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(240,248,255,0.85));
+  border: 1px solid rgba(70,130,180,0.18);
+  border-radius: var(--r-md);
+  padding: 1.3rem 1.5rem;
+  transition: border-color 0.2s;
+}
+.hack-card:hover { border-color: rgba(70,130,180,0.32); }
+
+.hack-card__main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.2rem;
+}
+
+.hack-card__info { flex: 1; }
+
+.hack-card__name {
+  font-family: var(--f-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--c-text-on-light);
+  margin-bottom: 0.5rem;
+}
+
+.hack-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.hack-card__pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--c-text-muted-light);
+  background: rgba(70,130,180,0.06);
+  border: 1px solid rgba(70,130,180,0.16);
+  border-radius: var(--r-pill);
+  padding: 0.2rem 0.55rem;
+}
+.hack-card__pill--mode {
+  color: var(--c-steel);
+  background: rgba(70,130,180,0.1);
+  border-color: rgba(70,130,180,0.25);
+}
+
+.hack-card__desc {
+  font-size: 0.8rem;
+  color: var(--c-text-muted-light);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.hack-card__action { flex-shrink: 0; }
+
+.hack-card__register-btn {
+  background: linear-gradient(135deg, #3a8fb5, #2672a0);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.84rem;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 0.6rem 1.1rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.hack-card__register-btn:hover { opacity: 0.9; }
+.hack-card__register-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.hack-card__registered {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #7ecfa0;
+  background: rgba(126,207,160,0.1);
+  border: 1px solid rgba(126,207,160,0.25);
+  border-radius: var(--r-sm);
+  padding: 0.6rem 1rem;
+  white-space: nowrap;
+}
+
+.hack-card__prizes {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--c-text-muted-light);
+  margin-top: 0.8rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(70,130,180,0.12);
+}

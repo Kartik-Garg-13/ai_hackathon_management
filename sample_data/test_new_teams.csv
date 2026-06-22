@@ -1,0 +1,8 @@
+id,name,email,college,skills,project_idea,team_name,phone_number
+T9001_001,Ishaan Mehra,ishaanmehra@gmail.com,Delhi Public University,"Python,TensorFlow,NLP",AI-Powered Mental Health Companion App,NeuralNomads,+919811122233
+T9001_002,Tara Bhatt,tarabhatt@gmail.com,Delhi Public University,"PyTorch,Hugging Face,Data Science",AI-Powered Mental Health Companion App,NeuralNomads,+919811122234
+T9002_001,Devansh Pillai,devanshp@outlook.com,Manipal Institute of Technology,"Docker,AWS,IoT Sensors",Smart Irrigation System for Small Farms,GreenGrid,+919922334455
+T9002_002,Sana Qureshi,sanaqureshi@outlook.com,Manipal Institute of Technology,"Kubernetes,Azure,Cloud/DevOps",Smart Irrigation System for Small Farms,GreenGrid,+919922334456
+T9002_003,Rohan D'Souza,rohands@outlook.com,Manipal Institute of Technology,"Pandas,SQL,Data",Smart Irrigation System for Small Farms,GreenGrid,+919922334457
+T9003_001,Meera Krishnan,meerak@gmail.com,Manipal Institute of Technology,"Flutter,Kotlin,Android",Multiplayer Game for Accessibility Awareness,PixelForge,+919933445566
+T9003_002,Aarav Khanna,aaravk@gmail.com,Manipal Institute of Technology,"Swift,iOS,UI/UX",Multiplayer Game for Accessibility Awareness,PixelForge,+919933445567

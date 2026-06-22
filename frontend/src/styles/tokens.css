@@ -1,0 +1,132 @@
+
+:root {
+  --c-ink: #0a1628;
+  --c-ink-soft: #101f38;
+  --c-ink-line: #1c2e4a;
+
+  --c-frost: #f0f8ff;
+  --c-powder: #b0e0e6;
+  --c-steel: #4682b4;
+  --c-steel-bright: #5b9bd1;
+  --c-fog: #d3d3d3;
+  --c-white: #ffffff;
+
+  --c-text-on-dark: #eaf2fb;
+  --c-text-muted-dark: #93a6c2;
+  --c-text-on-light: #16243a;
+  --c-text-muted-light: #5c6b82;
+
+  --c-success: #4ade80;
+  --c-warning: #fbbf24;
+  --c-danger: #f87171;
+
+  --c-success-bg: rgba(74, 222, 128, 0.14);
+  --c-warning-bg: rgba(251, 191, 36, 0.14);
+  --c-danger-bg: rgba(248, 113, 113, 0.14);
+  --c-neutral-bg: rgba(211, 211, 211, 0.3);
+
+  --f-display: "Space Grotesk", "Inter", sans-serif;
+  --f-body: "Inter", sans-serif;
+  --f-mono: "JetBrains Mono", monospace;
+
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  --shadow-card: 0 8px 30px rgba(10, 22, 40, 0.35);
+  --shadow-glow-steel: 0 0 0 1px rgba(91, 155, 209, 0.25), 0 8px 24px rgba(70, 130, 180, 0.25);
+  --shadow-soft-light: 0 4px 24px rgba(70, 130, 180, 0.08);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur-med: 420ms;
+  --dur-slow: 900ms;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--f-body);
+  background: linear-gradient(180deg, var(--c-frost) 0%, #eaf4fb 100%);
+  color: var(--c-text-on-light);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input, select, textarea {
+  font-family: inherit;
+}
+
+::selection {
+  background: var(--c-steel);
+  color: var(--c-white);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--c-fog);
+  border-radius: var(--r-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-steel);
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-steel-bright);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

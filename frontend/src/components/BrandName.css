@@ -1,0 +1,53 @@
+.brand-name {
+  font-family: var(--f-display);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  gap: 0;
+}
+
+.brand-name--sm { font-size: 1.15rem; }
+.brand-name--md { font-size: 1.45rem; }
+
+.brand-name--link {
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.brand-name--link:hover {
+  opacity: 0.82;
+}
+
+.brand-name__d,
+.brand-name__ll {
+  color: var(--c-text-on-light);
+  text-shadow: 0 0 8px rgba(91,155,209,0.18);
+  display: inline-block;
+}
+
+.brand-name__e-svg {
+  display: inline-block;
+  width: 0.62em;
+  height: 0.82em;
+  vertical-align: -0.06em;
+  margin: 0 0.03em;
+  color: var(--c-steel);
+  filter: drop-shadow(0 0 3px rgba(70,130,180,0.3));
+  flex-shrink: 0;
+}
+
+.brand-name__igent {
+  color: var(--c-steel);
+  text-shadow: none;
+  display: inline-block;
+}
+
+.brand-name__minds {
+  color: var(--c-steel-bright);
+  text-shadow: none;
+  display: inline-block;
+}
