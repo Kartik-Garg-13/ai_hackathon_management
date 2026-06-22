@@ -13,13 +13,24 @@ export default function ChatPanel() {
     api.chatHistory().then(setMessages).catch((e) => setError(e.message));
 
     const ws = new WebSocket(api.chatWebSocketUrl());
+    ws.onopen = () => {
+      if (wsRef.current === ws) setError(null);
+    };
     ws.onmessage = (event) => {
       setMessages((prev) => [...prev, JSON.parse(event.data)]);
     };
-    ws.onerror = () => setError("Chat connection lost — refresh to reconnect.");
+    ws.onerror = () => {
+      // Ignore errors from a connection that's already been superseded
+      // (e.g. React StrictMode's double-mount closing the first socket
+      // mid-handshake) — only the current connection's errors matter.
+      if (wsRef.current === ws) setError("Chat connection lost — refresh to reconnect.");
+    };
     wsRef.current = ws;
 
-    return () => ws.close();
+    return () => {
+      ws.close();
+      if (wsRef.current === ws) wsRef.current = null;
+    };
   }, []);
 
   function handleSend(e) {
