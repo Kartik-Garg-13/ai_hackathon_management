@@ -100,6 +100,7 @@ def list_registrations(
     hackathon_id: int,
     risk_level: str | None = Query(default=None),
     approval_status: str | None = Query(default=None),
+    name: str | None = Query(default=None),
     limit: int = Query(default=50, le=500),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
@@ -110,6 +111,12 @@ def list_registrations(
         q = q.filter(Participant.final_risk_level == risk_level)
     if approval_status:
         q = q.filter(Participant.approval_status == approval_status)
+    if name:
+        needle = f"%{name.strip().lower()}%"
+        q = q.filter(
+            func.lower(Participant.name).like(needle)
+            | func.lower(Participant.team_name).like(needle)
+        )
     return q.order_by(Participant.final_trust_score.asc()).offset(offset).limit(limit).all()
 
 

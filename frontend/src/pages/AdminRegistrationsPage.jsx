@@ -19,6 +19,8 @@ export default function AdminRegistrationsPage() {
 
   const [riskFilter, setRiskFilter] = useState("");
   const [approvalFilter, setApprovalFilter] = useState("");
+  const [nameSearch, setNameSearch] = useState("");
+  const [nameSearchInput, setNameSearchInput] = useState("");
   const [rows, setRows] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [listLoading, setListLoading] = useState(true);
@@ -50,7 +52,7 @@ export default function AdminRegistrationsPage() {
         return;
       }
       const [r, a] = await Promise.all([
-        api.listRegistrations(riskFilter || undefined, approvalFilter || undefined),
+        api.listRegistrations(riskFilter || undefined, approvalFilter || undefined, nameSearch || undefined),
         api.registrationAnalytics(),
       ]);
       setRows(r);
@@ -65,7 +67,12 @@ export default function AdminRegistrationsPage() {
   useEffect(() => {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [riskFilter, approvalFilter]);
+  }, [riskFilter, approvalFilter, nameSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setNameSearch(nameSearchInput.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [nameSearchInput]);
 
   function handleFileChosen(file) {
     setUploadError(null);
@@ -178,6 +185,13 @@ export default function AdminRegistrationsPage() {
             <div className="admin-reg-page__table-head">
               <h2>All registrations</h2>
               <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  className="admin-reg-page__filter"
+                  placeholder="Search by name or team…"
+                  value={nameSearchInput}
+                  onChange={(e) => setNameSearchInput(e.target.value)}
+                />
                 <select className="admin-reg-page__filter" value={riskFilter} onChange={(e) => setRiskFilter(e.target.value)}>
                   {RISK_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt || "All risk levels"}</option>)}
                 </select>
