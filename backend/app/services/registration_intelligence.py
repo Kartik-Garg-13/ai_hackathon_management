@@ -136,8 +136,12 @@ def email_intelligence(email: str) -> dict:
 
 def phone_validity(phone) -> tuple[bool, str]:
     raw = str(phone).strip()
+    # Without a "+" country code, phonenumbers can't parse a bare national
+    # number unless told what region to assume -- default to India so a
+    # participant can type e.g. "9876543210" without the +91 prefix.
+    default_region = None if raw.startswith("+") else "IN"
     try:
-        parsed = phonenumbers.parse(raw, None)
+        parsed = phonenumbers.parse(raw, default_region)
     except phonenumbers.NumberParseException:
         return False, raw
     if not phonenumbers.is_valid_number(parsed):
