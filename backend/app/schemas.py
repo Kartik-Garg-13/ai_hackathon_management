@@ -197,6 +197,20 @@ class NormalizedScoreEntry(BaseModel):
     explanation: str
 
 
+class WinnerEntry(BaseModel):
+    rank: int
+    team_id: int
+    team_name: str
+    average_normalized_score: float
+    num_scores: int
+
+
+class WinnersResponse(BaseModel):
+    revealed: bool
+    revealed_at: datetime | None = None
+    rankings: list[WinnerEntry] = []
+
+
 class OrganizerSignup(BaseModel):
     name: str
     email: str

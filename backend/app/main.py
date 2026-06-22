@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, bias, burnout, chat, copilot, dashboard, hackathons, invites, me, pitch, plagiarism, queries, registrations, reviewers, similarity, teams
+from app.api import auth, bias, burnout, chat, copilot, dashboard, hackathons, invites, me, pitch, plagiarism, queries, registrations, reviewers, similarity, teams, winners
 from app.database import Base, engine
 
 Base.metadata.create_all(bind=engine)
@@ -38,6 +38,7 @@ app.include_router(me.router)
 app.include_router(teams.router)
 app.include_router(similarity.router)
 app.include_router(plagiarism.router)
+app.include_router(winners.router)
 
 
 @app.get("/api/health")

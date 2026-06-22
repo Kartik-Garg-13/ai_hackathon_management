@@ -1,13 +1,21 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GlassCard from "./GlassCard.jsx";
+import { api } from "../api.js";
 import "./FeatureCard.css";
 
 export default function FeatureCard({ feature }) {
   const [running, setRunning] = useState(false);
+  const [winners, setWinners] = useState(null);
+  const [winnersError, setWinnersError] = useState(null);
 
   function handleRun() {
     setRunning(true);
+    if (feature.id === "winner") {
+      api.getWinners()
+        .then(setWinners)
+        .catch((e) => setWinnersError(e.message || "Could not check winner status."));
+    }
     setTimeout(() => setRunning(false), 2600);
   }
 
@@ -24,7 +32,11 @@ export default function FeatureCard({ feature }) {
       <p className="feature-card__desc">{feature.description}</p>
 
       <div className="feature-card__stage">
-        <FeatureAnimation type={feature.id} running={running} />
+        {feature.id === "winner" && winners ? (
+          <WinnerResult winners={winners} error={winnersError} />
+        ) : (
+          <FeatureAnimation type={feature.id} running={running} />
+        )}
       </div>
 
       <button className="feature-card__cta" onClick={handleRun} disabled={running}>
@@ -152,6 +164,40 @@ function BiasAnim({ running }) {
       >
         <span className="anim-bias__dot" /> Balanced — no skew detected
       </motion.div>
+    </div>
+  );
+}
+
+function WinnerResult({ winners, error }) {
+  if (error) {
+    return <p className="anim-bias__verdict" style={{ opacity: 1 }}>{error}</p>;
+  }
+  if (!winners.revealed) {
+    return (
+      <p className="anim-bias__verdict" style={{ opacity: 1 }}>
+        The organizer hasn't revealed final results yet — check back later.
+      </p>
+    );
+  }
+  if (winners.rankings.length === 0) {
+    return <p className="anim-bias__verdict" style={{ opacity: 1 }}>No scores have been submitted yet.</p>;
+  }
+  return (
+    <div className="anim anim--winner">
+      <div className="anim-podium">
+        {winners.rankings.slice(0, 3).map((r) => (
+          <div
+            key={r.team_id}
+            className="anim-podium__bar"
+            style={{ height: `${Math.max(20, 60 - (r.rank - 1) * 16)}px` }}
+          >
+            <span className="anim-podium__place">{r.rank}</span>
+          </div>
+        ))}
+      </div>
+      <div className="anim-bias__verdict" style={{ opacity: 1, marginTop: 8 }}>
+        {winners.rankings.slice(0, 3).map((r) => `#${r.rank} ${r.team_name}`).join(" · ")}
+      </div>
     </div>
   );
 }

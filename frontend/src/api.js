@@ -207,6 +207,9 @@ export const api = {
 
   similarityReport: () => request(hackathonPath("/similarity/report")),
 
+  getWinners: () => request(hackathonPath("/winners")),
+  revealWinners: () => request(hackathonPath("/winners/reveal"), { method: "POST" }),
+
   scanPlagiarism: () => request(hackathonPath("/plagiarism/scan")),
   comparePlagiarism: (teamAId, teamBId) =>
     request(`${hackathonPath("/plagiarism/compare")}?team_a_id=${teamAId}&team_b_id=${teamBId}`, { method: "POST" }),

@@ -253,7 +253,7 @@
   border-radius: 6px 6px 0 0;
   background: linear-gradient(180deg, var(--c-steel-bright), var(--c-steel));
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   position: relative;
 }
@@ -267,7 +267,6 @@
   font-size: 0.72rem;
   font-weight: 700;
   color: rgba(10, 22, 40, 0.75);
-  margin-top: 4px;
 }
 
 .anim-confetti {

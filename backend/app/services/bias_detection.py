@@ -171,3 +171,41 @@ def fairness_report(scores_by_reviewer: dict[int, list[float]]) -> list[Reviewer
         pop_mean, pop_std = compute_population_stats(other_scores or scores)
         results.append(analyze_reviewer_bias(reviewer_id, scores, pop_mean, pop_std))
     return results
+
+
+@dataclass
+class TeamRankingResult:
+    team_id: int
+    average_normalized_score: float
+    num_scores: int
+
+
+def compute_final_rankings(raw_scores: list[tuple[int, int, float]]) -> list[TeamRankingResult]:
+    """raw_scores: list of (reviewer_id, team_id, score). Normalizes each score against its
+    reviewer's own tendency before averaging per team, so a harsh or lenient judge doesn't skew
+    a team's final placement — same correction used in the per-team bias-comparison view."""
+    if not raw_scores:
+        return []
+
+    scores_by_reviewer: dict[int, list[float]] = {}
+    for reviewer_id, _, score in raw_scores:
+        scores_by_reviewer.setdefault(reviewer_id, []).append(score)
+
+    population_mean, population_std = compute_population_stats([s for _, _, s in raw_scores])
+
+    normalized_by_team: dict[int, list[float]] = {}
+    for reviewer_id, team_id, score in raw_scores:
+        reviewer_mean, reviewer_std = compute_population_stats(scores_by_reviewer[reviewer_id])
+        normalized = normalize_score(score, reviewer_mean, reviewer_std, population_mean, population_std)
+        normalized_by_team.setdefault(team_id, []).append(normalized)
+
+    rankings = [
+        TeamRankingResult(
+            team_id=team_id,
+            average_normalized_score=round(float(np.mean(scores)), 2),
+            num_scores=len(scores),
+        )
+        for team_id, scores in normalized_by_team.items()
+    ]
+    rankings.sort(key=lambda r: r.average_normalized_score, reverse=True)
+    return rankings

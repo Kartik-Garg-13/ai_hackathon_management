@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 import GlassCard from "../components/GlassCard.jsx";
+import Button from "../components/Button.jsx";
 import { api } from "../api.js";
 import "./AdminAnalyticsPage.css";
 
@@ -19,6 +20,10 @@ export default function AdminAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [winners, setWinners] = useState(null);
+  const [revealing, setRevealing] = useState(false);
+  const [revealError, setRevealError] = useState(null);
+
   useEffect(() => {
     Promise.all([api.registrationAnalytics(), api.judgeDashboard()])
       .then(([a, d]) => {
@@ -27,7 +32,20 @@ export default function AdminAnalyticsPage() {
       })
       .catch((err) => setError(err.message || "Could not load analytics."))
       .finally(() => setLoading(false));
+    api.getWinners().then(setWinners).catch(() => {});
   }, []);
+
+  async function handleReveal() {
+    setRevealing(true);
+    setRevealError(null);
+    try {
+      setWinners(await api.revealWinners());
+    } catch (err) {
+      setRevealError(err.message || "Could not reveal winners.");
+    } finally {
+      setRevealing(false);
+    }
+  }
 
   const riskCounts = data
     ? { "Low Risk": data.low_risk_count, "Medium Risk": data.medium_risk_count, "High Risk": data.high_risk_count }
@@ -129,6 +147,35 @@ export default function AdminAnalyticsPage() {
                 </motion.section>
               </>
             )}
+
+            <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
+              <GlassCard tone="light" className="admin-analytics-page__card">
+                <h2>Winner announcement</h2>
+                {winners?.revealed ? (
+                  <>
+                    <p style={{ marginBottom: 10 }}>
+                      Revealed to all participants at {new Date(winners.revealed_at).toLocaleString()}.
+                    </p>
+                    {winners.rankings.map((r) => (
+                      <div key={r.team_id} className="admin-analytics-page__bar-row">
+                        <span className="admin-analytics-page__bar-label">#{r.rank} {r.team_name}</span>
+                        <span className="admin-analytics-page__bar-value">{r.average_normalized_score}/100</span>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <p style={{ marginBottom: 10 }}>
+                      Final rankings are hidden from participants until you reveal them. This is permanent for this hackathon.
+                    </p>
+                    {revealError && <div className="admin-analytics-page__error" role="alert">{revealError}</div>}
+                    <Button variant="primary" size="md" loading={revealing} onClick={handleReveal}>
+                      Reveal winners to everyone
+                    </Button>
+                  </>
+                )}
+              </GlassCard>
+            </motion.section>
           </>
         )}
       </main>

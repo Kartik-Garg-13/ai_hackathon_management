@@ -54,6 +54,7 @@ class Hackathon(Base):
     code_of_conduct: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     support_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    winners_revealed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     organizer: Mapped["Organizer"] = relationship(back_populates="hackathons")
     invite_links: Mapped[list["InviteLink"]] = relationship(back_populates="hackathon")
