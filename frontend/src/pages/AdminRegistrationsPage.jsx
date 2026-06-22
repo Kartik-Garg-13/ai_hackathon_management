@@ -6,6 +6,7 @@ import GlassCard from "../components/GlassCard.jsx";
 import Button from "../components/Button.jsx";
 import RiskBadge from "../components/RiskBadge.jsx";
 import { api } from "../api.js";
+import { getSession, setSession } from "../auth.js";
 import "./AdminRegistrationsPage.css";
 
 const REQUIRED_COLUMNS = ["id", "name", "email", "college", "skills", "project_idea", "team_name", "phone_number"];
@@ -30,10 +31,24 @@ export default function AdminRegistrationsPage() {
 
   const [selected, setSelected] = useState(null);
 
+  async function ensureHackathonSelected() {
+    const session = getSession();
+    if (session?.hackathon_id) return true;
+    const hackathons = await api.listMyHackathons();
+    if (!hackathons.length) return false;
+    setSession({ ...session, hackathon_id: hackathons[0].id });
+    return true;
+  }
+
   async function refresh() {
     setListLoading(true);
     setListError(null);
     try {
+      const ok = await ensureHackathonSelected();
+      if (!ok) {
+        setListError("No hackathon found for this account — create one from the dashboard first.");
+        return;
+      }
       const [r, a] = await Promise.all([
         api.listRegistrations(riskFilter || undefined, approvalFilter || undefined),
         api.registrationAnalytics(),
