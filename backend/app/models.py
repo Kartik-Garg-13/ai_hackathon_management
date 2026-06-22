@@ -55,6 +55,7 @@ class Hackathon(Base):
     support_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     winners_revealed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    status: Mapped[str] = mapped_column(String(16), default="active")  # active | stopped | ended
 
     organizer: Mapped["Organizer"] = relationship(back_populates="hackathons")
     invite_links: Mapped[list["InviteLink"]] = relationship(back_populates="hackathon")

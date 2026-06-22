@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import CurrentActor, require_hackathon_scope
 from app.database import get_db
-from app.models import Activity, Participant, Team
+from app.models import Activity, Hackathon, Participant, Team
 from app.schemas import ActivityOut, TeamLinksUpdate, TeamOut, TeammateOut
 
 router = APIRouter(prefix="/api/hackathons/{hackathon_id}/teams", tags=["teams"])
@@ -15,6 +15,14 @@ def _require_team_access(actor: CurrentActor, team_id: int) -> None:
     if actor.role == "participant" and getattr(actor.actor, "team_id", None) == team_id:
         return
     raise HTTPException(403, "You can only view your own team's details")
+
+
+def _require_participant_writes_allowed(hackathon_id: int, actor: CurrentActor, db: Session) -> None:
+    if actor.role != "participant":
+        return
+    hackathon = db.get(Hackathon, hackathon_id)
+    if hackathon and hackathon.status != "active":
+        raise HTTPException(403, f"This hackathon has been {hackathon.status} by the organizer — submissions are locked")
 
 
 @router.get("", response_model=list[TeamOut])
@@ -41,6 +49,7 @@ def update_team_links(
         raise HTTPException(403, "Only the organizer or a team member can update project links")
     if actor.role == "participant" and getattr(actor.actor, "team_id", None) != team_id:
         raise HTTPException(403, "You can only update your own team's links")
+    _require_participant_writes_allowed(hackathon_id, actor, db)
 
     if payload.github_repo_url is not None:
         team.github_repo_url = payload.github_repo_url or None

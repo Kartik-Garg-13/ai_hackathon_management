@@ -17,11 +17,70 @@
 .hack-card__info { flex: 1; }
 
 .hack-card__name {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   font-family: var(--f-display);
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--c-text-on-light);
   margin-bottom: 0.5rem;
+}
+
+.hack-card__status {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--r-pill);
+}
+.hack-card__status--active {
+  color: #15803d;
+  background: rgba(126, 207, 160, 0.15);
+  border: 1px solid rgba(126, 207, 160, 0.35);
+}
+.hack-card__status--stopped {
+  color: #92400e;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+}
+.hack-card__status--ended {
+  color: var(--c-text-muted-light);
+  background: rgba(70, 130, 180, 0.08);
+  border: 1px solid rgba(70, 130, 180, 0.18);
+}
+
+.hack-card__lifecycle {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.hack-card__lifecycle-btn {
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: var(--r-sm);
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.hack-card__lifecycle-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.hack-card__lifecycle-btn--stop {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #991b1b;
+}
+.hack-card__lifecycle-btn--resume {
+  background: rgba(126, 207, 160, 0.12);
+  border: 1px solid rgba(126, 207, 160, 0.35);
+  color: #15803d;
+}
+.hack-card__lifecycle-btn--end {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  color: #991b1b;
 }
 
 .hack-card__meta {

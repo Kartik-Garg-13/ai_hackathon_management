@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import CurrentActor, require_hackathon_scope
 from app.database import get_db
-from app.models import PitchReview, Team
+from app.models import Hackathon, PitchReview, Team
 from app.schemas import PitchReviewOut
 from app.services.pitch_analyzer import analyze_pitch
 from app.services.repo_inspector import inspect_repo_health
@@ -19,11 +19,15 @@ async def analyze_team_pitch(
     team_id: int,
     file: UploadFile,
     db: Session = Depends(get_db),
-    _: CurrentActor = Depends(require_hackathon_scope),
+    actor: CurrentActor = Depends(require_hackathon_scope),
 ):
     team = db.get(Team, team_id)
     if not team or team.hackathon_id != hackathon_id:
         raise HTTPException(404, "Team not found")
+    if actor.role == "participant":
+        hackathon = db.get(Hackathon, hackathon_id)
+        if hackathon and hackathon.status != "active":
+            raise HTTPException(403, f"This hackathon has been {hackathon.status} by the organizer — submissions are locked")
     if not file.filename.lower().endswith(".pptx"):
         raise HTTPException(400, "Only .pptx files are supported")
 

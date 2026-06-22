@@ -77,6 +77,7 @@ def main():
             allow_judges=source.allow_judges,
             allow_mentors=source.allow_mentors,
             mode=source.mode,
+            status="ended",
         )
         db.add(new_hackathon)
         db.flush()

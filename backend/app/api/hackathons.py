@@ -51,3 +51,55 @@ def get_hackathon(hackathon_id: int, db: Session = Depends(get_db), _=Depends(re
     if not hackathon:
         raise HTTPException(404, "Hackathon not found")
     return hackathon
+
+
+def _get_owned_hackathon(hackathon_id: int, organizer: Organizer, db: Session) -> Hackathon:
+    hackathon = db.get(Hackathon, hackathon_id)
+    if not hackathon or hackathon.organizer_id != organizer.id:
+        raise HTTPException(404, "Hackathon not found")
+    return hackathon
+
+
+@router.post("/{hackathon_id}/stop", response_model=HackathonOut)
+def stop_hackathon(
+    hackathon_id: int,
+    organizer: Organizer = Depends(require_organizer),
+    db: Session = Depends(get_db),
+):
+    hackathon = _get_owned_hackathon(hackathon_id, organizer, db)
+    if hackathon.status != "active":
+        raise HTTPException(400, f"Hackathon is already {hackathon.status}, not active")
+    hackathon.status = "stopped"
+    db.commit()
+    db.refresh(hackathon)
+    return hackathon
+
+
+@router.post("/{hackathon_id}/resume", response_model=HackathonOut)
+def resume_hackathon(
+    hackathon_id: int,
+    organizer: Organizer = Depends(require_organizer),
+    db: Session = Depends(get_db),
+):
+    hackathon = _get_owned_hackathon(hackathon_id, organizer, db)
+    if hackathon.status != "stopped":
+        raise HTTPException(400, f"Hackathon is {hackathon.status}, not stopped — nothing to resume")
+    hackathon.status = "active"
+    db.commit()
+    db.refresh(hackathon)
+    return hackathon
+
+
+@router.post("/{hackathon_id}/end", response_model=HackathonOut)
+def end_hackathon(
+    hackathon_id: int,
+    organizer: Organizer = Depends(require_organizer),
+    db: Session = Depends(get_db),
+):
+    hackathon = _get_owned_hackathon(hackathon_id, organizer, db)
+    if hackathon.status == "ended":
+        raise HTTPException(400, "Hackathon has already ended")
+    hackathon.status = "ended"
+    db.commit()
+    db.refresh(hackathon)
+    return hackathon

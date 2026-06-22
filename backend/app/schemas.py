@@ -297,6 +297,7 @@ class HackathonOut(BaseModel):
     code_of_conduct: str | None = None
     support_email: str | None = None
     created_at: datetime
+    status: str = "active"
 
 
 class InviteLinkOut(BaseModel):

@@ -24,6 +24,7 @@ export default function AdminDashboardPage() {
   const [hackathons, setHackathons] = useState([]);
   const [error, setError] = useState(null);
   const [links, setLinks] = useState({});
+  const [lifecycleBusy, setLifecycleBusy] = useState(false);
 
   useEffect(() => {
     api.listMyHackathons().then(async (data) => {
@@ -62,6 +63,33 @@ export default function AdminDashboardPage() {
       setError(e.message);
     }
   }
+
+  function patchHackathon(updated) {
+    setHackathons((prev) => prev.map((h) => (h.id === updated.id ? updated : h)));
+  }
+
+  async function withLifecycleAction(action, confirmMessage) {
+    if (confirmMessage && !window.confirm(confirmMessage)) return;
+    setLifecycleBusy(true);
+    setError(null);
+    try {
+      patchHackathon(await action());
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLifecycleBusy(false);
+    }
+  }
+
+  const handleStop = (h) => withLifecycleAction(
+    () => api.stopHackathon(h.id),
+    `Stop "${h.name}"? Participants won't be able to submit GitHub/demo links or pitch decks until you resume it.`
+  );
+  const handleResume = (h) => withLifecycleAction(() => api.resumeHackathon(h.id));
+  const handleEnd = (h) => withLifecycleAction(
+    () => api.endHackathon(h.id),
+    `End "${h.name}" permanently? This can't be undone — participants will be locked out of submissions for good.`
+  );
 
   const joinUrl = (token) => `${window.location.origin}/join/${token}`;
   const current = PROBLEM_STATEMENTS[activeIdx];
@@ -117,7 +145,15 @@ export default function AdminDashboardPage() {
           {hackathons.length === 0 && <p className="admin-dash__ps-desc">No hackathons yet — create one to get started.</p>}
           {hackathons.map((h) => (
             <div key={h.id} style={{ marginBottom: 16 }}>
-              <HackathonCard hackathon={h} onManage={handleManage} onGenerateLinks={handleGenerateLinks} />
+              <HackathonCard
+                hackathon={h}
+                onManage={handleManage}
+                onGenerateLinks={handleGenerateLinks}
+                onStop={handleStop}
+                onResume={handleResume}
+                onEnd={handleEnd}
+                lifecycleBusy={lifecycleBusy}
+              />
               {links[h.id] && (
                 <ul style={{ marginTop: 8, fontSize: 13 }}>
                   {links[h.id].map((link) => (
@@ -169,7 +205,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="admin-dash__quick-stats">
-              <QuickStat value={hackathons.length} label="Active Hackathons" />
+              <QuickStat value={hackathons.filter((h) => (h.status || "active") === "active").length} label="Active Hackathons" />
             </div>
 
             <div className="admin-dash__quick-links">

@@ -12,7 +12,8 @@ export async function ensureHackathonSelected() {
   if (!session?.auth_token) return false;
   const hackathons = await api.listMyHackathons();
   if (!hackathons.length) return false;
-  setSession({ ...session, hackathon_id: hackathons[0].id });
+  const preferred = hackathons.find((h) => (h.status || "active") === "active") || hackathons[0];
+  setSession({ ...session, hackathon_id: preferred.id });
   return true;
 }
 
@@ -75,6 +76,9 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   getHackathon: (hackathonId) => request(`/api/hackathons/${hackathonId}`),
+  stopHackathon: (hackathonId) => request(`/api/hackathons/${hackathonId}/stop`, { method: "POST" }),
+  resumeHackathon: (hackathonId) => request(`/api/hackathons/${hackathonId}/resume`, { method: "POST" }),
+  endHackathon: (hackathonId) => request(`/api/hackathons/${hackathonId}/end`, { method: "POST" }),
   generateInviteLinks: (hackathonId) =>
     request(`/api/hackathons/${hackathonId}/invite-links/generate`, { method: "POST" }),
   listInviteLinks: (hackathonId) => request(`/api/hackathons/${hackathonId}/invite-links`),
