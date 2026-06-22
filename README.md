@@ -66,7 +66,7 @@ backend/
       copilot.py
     api/                          # one router module per feature area
   scripts/seed_demo_data.py       # loads sample_data/test.csv + synthetic reviewers/scores
-  tests/                          # 74 pytest unit + API smoke tests
+  tests/                          # 75 pytest unit + API smoke tests
 frontend/                         # Vite + React, role-based dashboards
 sample_data/test.csv              # 10,000-row synthetic registration dataset with ground truth labels
 ```
@@ -85,25 +85,40 @@ multiple hackathons.
 - **Mentor** and **Participant** — self-register to any open hackathon via
   `GET /api/hackathons/public`, no invite link required.
 
-## Setup
+## Running locally
 
-### Backend
+### Prerequisites
+
+- Python 3.10+
+- Node 18+
+- Git
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/Kartik-Garg-13/ai_hackathon_management.git
+cd ai_hackathon_management
+```
+
+### 2. Backend (terminal 1)
 
 ```bash
 cd backend
 python -m venv .venv
-.venv/Scripts/activate   # or source .venv/bin/activate on Linux/Mac
+.venv/Scripts/activate        # Windows
+# source .venv/bin/activate   # macOS / Linux
 pip install -r requirements.txt
-python scripts/seed_demo_data.py   # wipes and reseeds the DB
+python scripts/seed_demo_data.py   # wipes and reseeds the DB with demo data
 uvicorn app.main:app --reload
 ```
 
-API docs: http://localhost:8000/docs
+Leave this running. API docs (interactive Swagger UI): http://localhost:8000/docs
 
-Demo organizer login: `organizer@demo.dev` / `demo1234`. The seed script
-prints a fresh judge invite link each run.
+The seed script prints the demo organizer credentials and a fresh judge
+invite link every time it runs — re-run it any time you want to reset to a
+clean demo state.
 
-### Frontend
+### 3. Frontend (terminal 2 — open a new terminal, keep the backend running)
 
 ```bash
 cd frontend
@@ -111,13 +126,43 @@ npm install
 npm run dev -- --port 5173
 ```
 
-Open http://localhost:5173
+Open **http://localhost:5173** in your browser. That's the actual website.
 
-### Docker
+### 4. Try it out
+
+- **Organizer**: go to `/admin/login`, sign in with `organizer@demo.dev` /
+  `demo1234` (printed by the seed script). From the dashboard you can browse
+  registrations, run reviewer assignment, view bias reports, and check
+  Project Insights (similarity + plagiarism detection).
+- **Participant**: go to `/participant/login` — pick any open hackathon and
+  register directly, no invite link needed.
+- **Mentor**: go to `/mentor/login` — same self-registration flow.
+- **Judge**: needs the invite link the seed script printed to your terminal
+  (`/join/<token>`) — judges are the one role that still requires an
+  organizer-issued invite.
+
+### Docker (alternative to steps 2–3)
 
 ```bash
 docker compose up --build
 ```
+
+Builds and runs both services together — backend on :8000, frontend on
+:4173. You'll still need to seed the database once (see step 2) inside the
+running backend container, or run the seed script locally against the same
+`DATABASE_URL` first.
+
+### Troubleshooting
+
+- **"Port already in use"**: another process is already bound to 8000 or
+  5173 — stop it, or run with a different port (`--port 5174`,
+  `uvicorn app.main:app --reload --port 8001`, and update
+  `frontend/src/api.js`'s fallback URL or set `VITE_API_URL` to match).
+- **Frontend loads but nothing works / network errors**: the backend isn't
+  running, or isn't on the port the frontend expects (defaults to
+  `http://localhost:8000`).
+- **Want a clean slate**: re-run `python scripts/seed_demo_data.py` — it
+  drops and recreates every table before reseeding.
 
 ## Testing
 
@@ -126,7 +171,7 @@ cd backend
 pytest -v
 ```
 
-74 tests: unit tests for each service (registration scoring, reviewer
+75 tests: unit tests for each service (registration scoring, reviewer
 conflict/load-balancing, bias z-score math, similarity/plagiarism
 detection, mentor matching) plus FastAPI `TestClient` smoke tests exercising
 full flows end-to-end — registration → reanalysis → reviewer assignment →
