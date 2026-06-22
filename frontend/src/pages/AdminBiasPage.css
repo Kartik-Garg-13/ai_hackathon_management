@@ -121,6 +121,50 @@
 }
 .admin-bias-page__details strong { color: var(--c-text-on-light); }
 
+.admin-bias-page__team-select {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(70, 130, 180, 0.25);
+  background: #fff;
+  color: var(--c-text-on-light);
+  margin-bottom: 1rem;
+}
+
+.admin-bias-page__norm-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.admin-bias-page__norm-row {
+  display: grid;
+  grid-template-columns: 160px 110px 150px 1fr;
+  gap: 0.8rem;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(70, 130, 180, 0.1);
+  border-radius: var(--r-sm);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.82rem;
+}
+
+.admin-bias-page__norm-row--head {
+  background: none;
+  border: none;
+  font-weight: 700;
+  color: var(--c-text-muted-light);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0 0.9rem;
+}
+
+.admin-bias-page__norm-name { font-weight: 600; color: var(--c-text-on-light); }
+.admin-bias-page__norm-raw { color: var(--c-text-muted-light); }
+.admin-bias-page__norm-score { font-weight: 700; color: var(--c-steel); }
+.admin-bias-page__norm-explanation { color: var(--c-text-muted-light); font-size: 0.8rem; }
+
 .admin-bias-page__audit-list {
   display: flex;
   flex-direction: column;

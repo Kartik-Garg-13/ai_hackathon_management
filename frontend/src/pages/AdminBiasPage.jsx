@@ -20,7 +20,15 @@ export default function AdminBiasPage() {
   const [audit, setAudit] = useState([]);
   const [auditLoading, setAuditLoading] = useState(true);
 
+  const [teams, setTeams] = useState([]);
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const [normalized, setNormalized] = useState([]);
+  const [normalizedLoading, setNormalizedLoading] = useState(false);
+  const [normalizedError, setNormalizedError] = useState(null);
+
   const [openDetails, setOpenDetails] = useState({});
+
+  const teamNameById = Object.fromEntries(teams.map((t) => [t.id, t.team_name]));
 
   useEffect(() => {
     api.biasReport().then(setBias).catch((e) => setBiasError(e.message)).finally(() => setBiasLoading(false));
@@ -28,7 +36,21 @@ export default function AdminBiasPage() {
     api.auditLog()
       .then((data) => setAudit([...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))))
       .finally(() => setAuditLoading(false));
+    api.listTeams().then((data) => {
+      setTeams(data);
+      if (data.length > 0) setSelectedTeamId(data[0].id);
+    });
   }, []);
+
+  useEffect(() => {
+    if (!selectedTeamId) return;
+    setNormalizedLoading(true);
+    setNormalizedError(null);
+    api.normalizedScores(selectedTeamId)
+      .then(setNormalized)
+      .catch((e) => setNormalizedError(e.message))
+      .finally(() => setNormalizedLoading(false));
+  }, [selectedTeamId]);
 
   function toggleDetails(key) {
     setOpenDetails((d) => ({ ...d, [key]: !d[key] }));
@@ -62,6 +84,46 @@ export default function AdminBiasPage() {
         </motion.section>
 
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
+          <h2 className="admin-bias-page__section-title">Team score comparison</h2>
+          <p className="admin-bias-page__status" style={{ paddingTop: 0 }}>
+            Each judge's raw score for this team, side by side with the bias-corrected normalized score.
+          </p>
+          <select
+            className="admin-bias-page__team-select"
+            value={selectedTeamId || ""}
+            onChange={(e) => setSelectedTeamId(Number(e.target.value))}
+          >
+            {teams.map((t) => (
+              <option key={t.id} value={t.id}>{t.team_name}</option>
+            ))}
+          </select>
+
+          {normalizedLoading && <div className="admin-bias-page__status">Loading scores…</div>}
+          {normalizedError && <div className="admin-bias-page__error" role="alert">{normalizedError}</div>}
+          {!normalizedLoading && !normalizedError && normalized.length === 0 && (
+            <div className="admin-bias-page__status">No scores submitted for this team yet.</div>
+          )}
+          {!normalizedLoading && normalized.length > 0 && (
+            <div className="admin-bias-page__norm-table">
+              <div className="admin-bias-page__norm-row admin-bias-page__norm-row--head">
+                <span>Judge</span>
+                <span>Raw score</span>
+                <span>Normalized score</span>
+                <span>Why</span>
+              </div>
+              {normalized.map((entry) => (
+                <div key={entry.score_id} className="admin-bias-page__norm-row">
+                  <span className="admin-bias-page__norm-name">{entry.reviewer_name}</span>
+                  <span className="admin-bias-page__norm-raw">{entry.raw_score}</span>
+                  <span className="admin-bias-page__norm-score">{entry.normalized_score}</span>
+                  <span className="admin-bias-page__norm-explanation">{entry.explanation}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.section>
+
+        <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}>
           <h2 className="admin-bias-page__section-title">Audit log</h2>
           {auditLoading && <div className="admin-bias-page__status">Loading audit log…</div>}
           {!auditLoading && audit.length === 0 && <div className="admin-bias-page__status">No audit entries yet.</div>}
@@ -71,6 +133,7 @@ export default function AdminBiasPage() {
                 <div key={entry.id} className="admin-bias-page__audit-row">
                   <span className="admin-bias-page__audit-time">{formatTime(entry.timestamp)}</span>
                   <span className="admin-bias-page__audit-reviewer">{entry.actor}</span>
+                  <span className="admin-bias-page__audit-team">{teamNameById[entry.after?.team_id] || "—"}</span>
                   <span className="admin-bias-page__audit-score">{entry.after?.score ?? "—"}</span>
                   <span className="admin-bias-page__audit-action">{entry.action}</span>
                 </div>
