@@ -1,4 +1,5 @@
-import { Navigate, BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { getSession } from "./auth";
 
 import LandingPage from "./pages/LandingPage.jsx";
@@ -23,6 +24,14 @@ import ReviewerScorePage from "./pages/ReviewerScorePage.jsx";
 import MentorLoginPage from "./pages/MentorLoginPage.jsx";
 import MentorDashboardPage from "./pages/MentorDashboardPage.jsx";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 function RequireRole({ role, redirectTo, children }) {
   const session = getSession();
   if (!session || session.role !== role) {
@@ -34,6 +43,7 @@ function RequireRole({ role, redirectTo, children }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/join/:token" element={<JoinPage />} />
